@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1085513790662",
+    "project_id": "studentsaccomodations-27ae2",
+    "storage_bucket": "studentsaccomodations-27ae2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1085513790662:android:dd0918461634f03de553c7",
+        "android_client_info": {
+          "package_name": "com.example.studentsaccomodations"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB34ESS5XSM4jnJ9JFIagBizc5Fo_pv5ic"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1085513790662:android:e4d7f7ce2f73e0b1e553c7",
+        "android_client_info": {
+          "package_name": "com.example.studentsaccomodationss"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB34ESS5XSM4jnJ9JFIagBizc5Fo_pv5ic"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

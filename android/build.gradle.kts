@@ -1,3 +1,16 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        // Kotlin DSL syntax: use double quotes and parentheses
+        classpath("com.google.gms:google-services:4.3.15")
+        classpath("com.android.tools.build:gradle:8.1.1") // keep your AGP version
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -5,6 +18,7 @@ allprojects {
     }
 }
 
+// Optional: custom build directories (your existing setup)
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")
@@ -15,6 +29,7 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
