@@ -1,12 +1,12 @@
-// import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
-// class MaintenanceScreen extends StatelessWidget {
-//   const MaintenanceScreen({super.key});
+class MaintenanceScreen extends StatelessWidget {
+  const MaintenanceScreen({super.key});
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return const Center(
-//       child: Text('Maintenance requests will appear here'),
-//     );
-//   }
-// }
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('Maintenance requests will appear here'),
+    );
+  }
+}
