@@ -25,7 +25,12 @@ class HostelProvider with ChangeNotifier {
     return _hostelService.getHostelsByLandlord(landlordId);
   }
 
+  // Add new hostel
   Future<void> addHostel(HostelModel hostel) async {
-    await _hostelService.createHostel(hostel);
+    try {
+      await _hostelService.createHostel(hostel);
+    } catch (e) {
+      rethrow;
+    }
   }
 }

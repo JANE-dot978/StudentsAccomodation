@@ -14,9 +14,13 @@ class AddHostelScreen extends StatefulWidget {
 class _AddHostelScreenState extends State<AddHostelScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
-  final TextEditingController _roomsController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _priceController = TextEditingController();
+  final _roomsController = TextEditingController();
+  final _locationController = TextEditingController();
+  final _descriptionController = TextEditingController();
+
+  bool _isSaving = false;
 
   @override
   Widget build(BuildContext context) {
@@ -29,56 +33,75 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Hostel Name'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Enter hostel name' : null,
+                validator: (v) => v!.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 12),
-
+              TextFormField(
+                controller: _locationController,
+                decoration: const InputDecoration(labelText: 'Location'),
+                validator: (v) => v!.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _priceController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: 'Price (KES)'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Enter price' : null,
+                validator: (v) => v!.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 12),
-
               TextFormField(
                 controller: _roomsController,
                 keyboardType: TextInputType.number,
                 decoration:
                     const InputDecoration(labelText: 'Available Rooms'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Enter number of rooms' : null,
+                validator: (v) => v!.isEmpty ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _descriptionController,
+                maxLines: 4,
+                decoration:
+                    const InputDecoration(labelText: 'Hostel Description'),
               ),
               const SizedBox(height: 24),
+              _isSaving
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: () async {
+                        if (!_formKey.currentState!.validate()) return;
 
-              ElevatedButton(
-                onPressed: () async {
-                  if (!_formKey.currentState!.validate()) return;
+                        setState(() => _isSaving = true);
 
-                  final hostel = HostelModel(
-                    id: '',
-                    name: _nameController.text,
-                    price: int.parse(_priceController.text),
-                    availableRooms: int.parse(_roomsController.text),
-                    images: [],
-                    sharedItems: [],
-                    landlordId: authProvider.user!.uid,
-                  );
+                        final hostel = HostelModel(
+                          id: '',
+                          name: _nameController.text,
+                          location: _locationController.text,
+                          price: int.parse(_priceController.text),
+                          availableRooms:
+                              int.parse(_roomsController.text),
+                          images: [],
+                          sharedItems: [],
+                          landlordId: authProvider.user!.uid,
+                          description: _descriptionController.text,
+                        );
 
-                  await hostelProvider.addHostel(hostel);
-
-                  if (!mounted) return;
-                  Navigator.pop(context);
-                },
-                child: const Text('Add Hostel'),
-              ),
+                        try {
+                          await hostelProvider.addHostel(hostel);
+                          if (!mounted) return;
+                          Navigator.pop(context);
+                        } finally {
+                          if (mounted) {
+                            setState(() => _isSaving = false);
+                          }
+                        }
+                      },
+                      child: const Text('Add Hostel'),
+                    ),
             ],
           ),
         ),

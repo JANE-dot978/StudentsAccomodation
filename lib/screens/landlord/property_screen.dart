@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../providers/hostel_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/hostels_cards.dart';
-import '../../models/hostel_model.dart';
 
 class PropertyScreen extends StatelessWidget {
   const PropertyScreen({super.key});
@@ -10,16 +11,19 @@ class PropertyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hostelProvider = Provider.of<HostelProvider>(context, listen: false);
-    final landlordId = 'CURRENT_LANDLORD_ID'; // replace with actual landlord UID
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    final landlordId = authProvider.user!.uid;
 
     return Scaffold(
+      appBar: AppBar(title: const Text('My Properties')),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/add-hostel');
         },
         child: const Icon(Icons.add),
       ),
-      body: StreamBuilder<List<HostelModel>>(
+      body: StreamBuilder<List>(
         stream: hostelProvider.getLandlordHostels(landlordId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -35,14 +39,8 @@ class PropertyScreen extends StatelessWidget {
           return ListView.builder(
             itemCount: hostels.length,
             itemBuilder: (context, index) {
-              final hostel = hostels[index];
-
-              return HostelCard(
-                hostelId: hostel.id,
-                hostelName: hostel.name,
-                location: 'Campus Area',
-                price: hostel.price,
-                availableRooms: hostel.availableRooms,
+              return StyledHostelCard(
+                hostel: hostels[index],
               );
             },
           );
