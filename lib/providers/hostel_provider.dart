@@ -1,24 +1,31 @@
-import 'package:flutter/material.dart';
-import '../models/hostel_model.dart';
-import '../services/hostel_service.dart';
+// import 'package:flutter/material.dart';
+// import '../models/hostel_model.dart';
+// import '../services/hostel_service.dart';
 
-class HostelProvider with ChangeNotifier {
-  final HostelService _hostelService = HostelService();
+// class HostelProvider with ChangeNotifier {
+//   final HostelService _hostelService = HostelService();
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
+//   List<HostelModel> hostels = [];
+//   bool isLoading = false;
 
-  List<Hostel> _hostels = [];
-  List<Hostel> get hostels => _hostels;
+//   // For student home screen
+//   void fetchHostels() {
+//     isLoading = true;
+//     notifyListeners();
 
-  void fetchHostels() {
-    _isLoading = true;
-    notifyListeners();
+//     _hostelService.getAllHostels().listen((hostelList) {
+//       hostels = hostelList;
+//       isLoading = false;
+//       notifyListeners();
+//     });
+//   }
 
-    _hostelService.getAllHostels().listen((hostels) {
-      _hostels = hostels;
-      _isLoading = false;
-      notifyListeners();
-    });
-  }
-}
+//   // For landlord property screen
+//   Stream<List<HostelModel>> getLandlordHostels(String landlordId) {
+//     return _hostelService.getHostelsByLandlord(landlordId);
+//   }
+
+//   Future<void> addHostel(HostelModel hostel) async {
+//     await _hostelService.createHostel(hostel);
+//   }
+// }

@@ -2,27 +2,37 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/booking_model.dart';
 
 class BookingService {
-  final CollectionReference _bookingsCollection =
-      FirebaseFirestore.instance.collection('bookings');
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Create new booking
+  /// Create a booking
   Future<void> createBooking(Booking booking) async {
-    await _bookingsCollection.doc(booking.id).set(booking.toMap());
+    await _firestore.collection('bookings').add(booking.toMap());
   }
 
-  // Get bookings for a specific student
-  Stream<List<Booking>> getStudentBookings(String studentId) {
-    return _bookingsCollection
-        .where('studentId', isEqualTo: studentId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Booking.fromDocument(doc.id, doc.data() as Map<String, dynamic>))
-            .toList());
-  }
-
-  // Update booking status (for landlord)
+  /// Update booking status (approved/rejected)
   Future<void> updateBookingStatus(String bookingId, String status) async {
-    await _bookingsCollection.doc(bookingId).update({'status': status});
+    await _firestore.collection('bookings').doc(bookingId).update({
+      'status': status,
+    });
+  }
+
+  /// Stream bookings for a student
+  Stream<List<Booking>> getStudentBookings(String studentId) {
+    return _firestore
+        .collection('bookings')
+        .where('studentId', isEqualTo: studentId)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Booking.fromFirestore(doc)).toList());
+  }
+
+  /// Stream bookings for a landlord
+  Stream<List<Booking>> getLandlordBookings(String landlordId) {
+    return _firestore
+        .collection('bookings')
+        .where('landlordId', isEqualTo: landlordId)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => Booking.fromFirestore(doc)).toList());
   }
 }

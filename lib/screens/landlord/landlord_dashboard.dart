@@ -2,84 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 
-class LandlordDashboard extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'property_screen.dart';
+import 'booking_approval_screen.dart';
+import 'maintenance_screen.dart';
+
+class LandlordDashboard extends StatefulWidget {
   const LandlordDashboard({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Landlord Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await authProvider.logout();
-              if (context.mounted) {
-                Navigator.of(context).pushReplacementNamed('/login');
-              }
-            },
-          )
-        ],
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Landlord Dashboard',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 32),
-            _DashboardButton(
-              icon: Icons.home,
-              label: 'My Properties',
-              onPressed: () {},
-            ),
-            const SizedBox(height: 16),
-            _DashboardButton(
-              icon: Icons.people,
-              label: 'Tenants',
-              onPressed: () {},
-            ),
-            const SizedBox(height: 16),
-            _DashboardButton(
-              icon: Icons.receipt,
-              label: 'Bookings',
-              onPressed: () {},
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  State<LandlordDashboard> createState() => _LandlordDashboardState();
 }
 
-class _DashboardButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
+class _LandlordDashboardState extends State<LandlordDashboard> {
+  int _currentIndex = 0;
 
-  const _DashboardButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
+  final List<Widget> _screens = const [
+    PropertyScreen(),
+    BookingApprovalScreen(),
+    MaintenanceScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 200,
-      height: 60,
-      child: ElevatedButton.icon(
-        icon: Icon(icon),
-        label: Text(label),
-        onPressed: onPressed,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Landlord Dashboard'),
+      ),
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.apartment),
+            label: 'Hostels',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            label: 'Bookings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.build),
+            label: 'Maintenance',
+          ),
+        ],
       ),
     );
   }

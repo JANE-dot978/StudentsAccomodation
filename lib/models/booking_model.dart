@@ -8,10 +8,9 @@ class Booking {
   final String roomId;
   final DateTime checkInDate;
   final DateTime checkOutDate;
-  final double totalPrice;
-  final String status; // pending, confirmed, cancelled, completed
+  final int totalPrice;
+  final String status;
   final Timestamp createdAt;
-  final Timestamp? updatedAt;
 
   Booking({
     required this.id,
@@ -24,27 +23,24 @@ class Booking {
     required this.totalPrice,
     required this.status,
     required this.createdAt,
-    this.updatedAt,
   });
 
-  // Factory constructor to create Booking from Firestore document
-  factory Booking.fromDocument(String docId, Map<String, dynamic> data) {
+  factory Booking.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return Booking(
-      id: docId,
+      id: doc.id,
       studentId: data['studentId'] ?? '',
       landlordId: data['landlordId'] ?? '',
       hostelId: data['hostelId'] ?? '',
       roomId: data['roomId'] ?? '',
       checkInDate: (data['checkInDate'] as Timestamp).toDate(),
       checkOutDate: (data['checkOutDate'] as Timestamp).toDate(),
-      totalPrice: (data['totalPrice'] ?? 0).toDouble(),
+      totalPrice: data['totalPrice'] ?? 0,
       status: data['status'] ?? 'pending',
       createdAt: data['createdAt'] ?? Timestamp.now(),
-      updatedAt: data['updatedAt'],
     );
   }
 
-  // Method to convert Booking to map for Firestore
   Map<String, dynamic> toMap() {
     return {
       'studentId': studentId,
@@ -56,39 +52,6 @@ class Booking {
       'totalPrice': totalPrice,
       'status': status,
       'createdAt': createdAt,
-      'updatedAt': updatedAt ?? Timestamp.now(),
     };
   }
-
-  // Copy with method for immutability
-  Booking copyWith({
-    String? id,
-    String? studentId,
-    String? landlordId,
-    String? hostelId,
-    String? roomId,
-    DateTime? checkInDate,
-    DateTime? checkOutDate,
-    double? totalPrice,
-    String? status,
-    Timestamp? createdAt,
-    Timestamp? updatedAt,
-  }) {
-    return Booking(
-      id: id ?? this.id,
-      studentId: studentId ?? this.studentId,
-      landlordId: landlordId ?? this.landlordId,
-      hostelId: hostelId ?? this.hostelId,
-      roomId: roomId ?? this.roomId,
-      checkInDate: checkInDate ?? this.checkInDate,
-      checkOutDate: checkOutDate ?? this.checkOutDate,
-      totalPrice: totalPrice ?? this.totalPrice,
-      status: status ?? this.status,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-    );
-  }
-
-  @override
-  String toString() => 'Booking(id: $id, studentId: $studentId, status: $status)';
 }
