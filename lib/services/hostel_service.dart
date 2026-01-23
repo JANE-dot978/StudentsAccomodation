@@ -29,4 +29,14 @@ class HostelService {
     hostel.id = docRef.id; // assign Firestore ID to the model
     await docRef.set(hostel.toMap());
   }
+
+  // Update an existing hostel
+  Future<void> updateHostel(HostelModel hostel) async {
+    await _firestore.collection('hostels').doc(hostel.id).update(hostel.toMap());
+  }
+
+  // Delete a hostel
+  Future<void> deleteHostel(String hostelId) async {
+    await _firestore.collection('hostels').doc(hostelId).delete();
+  }
 }

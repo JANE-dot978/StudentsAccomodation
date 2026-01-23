@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:studentsaccomodations/providers/hostel_provider.dart';
 import '../../providers/hostel_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/hostel_model.dart';
@@ -21,6 +22,34 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   final _descriptionController = TextEditingController();
 
   bool _isSaving = false;
+  HostelModel? existingHostel;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Detect if editing an existing hostel
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args != null && args is HostelModel && existingHostel == null) {
+      existingHostel = args;
+
+      _nameController.text = existingHostel!.name;
+      _locationController.text = existingHostel!.location;
+      _priceController.text = existingHostel!.price.toString();
+      _roomsController.text = existingHostel!.availableRooms.toString();
+      _descriptionController.text = existingHostel!.description ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _priceController.dispose();
+    _roomsController.dispose();
+    _locationController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +57,9 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Hostel')),
+      appBar: AppBar(
+        title: Text(existingHostel == null ? 'Add Hostel' : 'Edit Hostel'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -38,30 +69,34 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Hostel Name'),
-                validator: (v) => v!.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: _locationController,
                 decoration: const InputDecoration(labelText: 'Location'),
-                validator: (v) => v!.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: _priceController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: 'Price (KES)'),
-                validator: (v) => v!.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: _roomsController,
                 keyboardType: TextInputType.number,
                 decoration:
                     const InputDecoration(labelText: 'Available Rooms'),
-                validator: (v) => v!.isEmpty ? 'Required' : null,
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 12),
+
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 4,
@@ -69,38 +104,51 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                     const InputDecoration(labelText: 'Hostel Description'),
               ),
               const SizedBox(height: 24),
+
               _isSaving
                   ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: () async {
-                        if (!_formKey.currentState!.validate()) return;
+                  : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (!_formKey.currentState!.validate()) return;
 
-                        setState(() => _isSaving = true);
+                          setState(() => _isSaving = true);
 
-                        final hostel = HostelModel(
-                          id: '',
-                          name: _nameController.text,
-                          location: _locationController.text,
-                          price: int.parse(_priceController.text),
-                          availableRooms:
-                              int.parse(_roomsController.text),
-                          images: [],
-                          sharedItems: [],
-                          landlordId: authProvider.user!.uid,
-                          description: _descriptionController.text,
-                        );
+                          final hostel = HostelModel(
+                            id: existingHostel?.id ?? '',
+                            name: _nameController.text.trim(),
+                            location: _locationController.text.trim(),
+                            price: int.parse(_priceController.text),
+                            availableRooms:
+                                int.parse(_roomsController.text),
+                            images: existingHostel?.images ?? [],
+                            sharedItems: existingHostel?.sharedItems ?? [],
+                            landlordId: authProvider.user!.uid,
+                            description: _descriptionController.text.trim(),
+                          );
 
-                        try {
-                          await hostelProvider.addHostel(hostel);
-                          if (!mounted) return;
-                          Navigator.pop(context);
-                        } finally {
-                          if (mounted) {
-                            setState(() => _isSaving = false);
+                          try {
+                            if (existingHostel == null) {
+                              await hostelProvider.addHostel(hostel);
+                            } else {
+                              await hostelProvider.updateHostel(hostel);
+                            }
+
+                            if (!mounted) return;
+                            Navigator.pop(context);
+                          } finally {
+                            if (mounted) {
+                              setState(() => _isSaving = false);
+                            }
                           }
-                        }
-                      },
-                      child: const Text('Add Hostel'),
+                        },
+                        child: Text(
+                          existingHostel == null
+                              ? 'Add Hostel'
+                              : 'Update Hostel',
+                        ),
+                      ),
                     ),
             ],
           ),

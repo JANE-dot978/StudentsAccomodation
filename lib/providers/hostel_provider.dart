@@ -33,4 +33,24 @@ class HostelProvider with ChangeNotifier {
       rethrow;
     }
   }
+
+  // Update an existing hostel
+  Future<void> updateHostel(HostelModel hostel) async {
+    try {
+      await _hostelService.updateHostel(hostel);
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // Delete a hostel
+  Future<void> deleteHostel(String hostelId) async {
+    try {
+      await _hostelService.deleteHostel(hostelId);
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:studentsaccomodations/providers/hostel_provider.dart';
 
 import '../../providers/hostel_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -36,14 +37,45 @@ class PropertyScreen extends StatelessWidget {
 
           final hostels = snapshot.data!;
 
-          return ListView.builder(
-            itemCount: hostels.length,
-            itemBuilder: (context, index) {
-              return StyledHostelCard(
-                hostel: hostels[index],
-              );
-            },
-          );
+         return ListView.builder(
+  itemCount: hostels.length,
+  itemBuilder: (context, index) {
+    final hostel = hostels[index];
+
+    return StyledHostelCard(
+      hostel: hostel,
+      onEdit: () {
+        Navigator.pushNamed(
+          context,
+          '/add-hostel',
+          arguments: hostel, // pass hostel for editing
+        );
+      },
+      onDelete: () async {
+        final confirm = await showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Delete Hostel'),
+            content: const Text('Are you sure you want to delete this hostel?'),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancel')),
+              TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Delete')),
+            ],
+          ),
+        );
+
+        if (confirm == true) {
+          await hostelProvider.deleteHostel(hostel.id);
+        }
+      },
+    );
+  },
+);
+
         },
       ),
     );
