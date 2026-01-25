@@ -1,56 +1,56 @@
-// import 'package:flutter/material.dart';
-// import '../models/hostel_model.dart';
-// import '../services/hostel_service.dart';
+import 'package:flutter/material.dart';
+import '../models/hostel_model.dart';
+import '../services/hostel_service.dart';
 
-// class HostelProvider with ChangeNotifier {
-//   final HostelService _hostelService = HostelService();
+class HostelProvider with ChangeNotifier {
+  final HostelService _hostelService = HostelService();
 
-//   List<HostelModel> hostels = [];
-//   bool isLoading = false;
+  List<HostelModel> hostels = [];
+  bool isLoading = false;
 
-//   // For student home screen
-//   void fetchHostels() {
-//     isLoading = true;
-//     notifyListeners();
+  // For student home screen
+  void fetchHostels() {
+    isLoading = true;
+    notifyListeners();
 
-//     _hostelService.getAllHostels().listen((hostelList) {
-//       hostels = hostelList;
-//       isLoading = false;
-//       notifyListeners();
-//     });
-//   }
+    _hostelService.getAllHostels().listen((hostelList) {
+      hostels = hostelList;
+      isLoading = false;
+      notifyListeners();
+    });
+  }
 
-//   // For landlord property screen
-//   Stream<List<HostelModel>> getLandlordHostels(String landlordId) {
-//     return _hostelService.getHostelsByLandlord(landlordId);
-//   }
+  // For landlord property screen
+  Stream<List<HostelModel>> getLandlordHostels(String landlordId) {
+    return _hostelService.getHostelsByLandlord(landlordId);
+  }
 
-//   // Add new hostel
-//   Future<void> addHostel(HostelModel hostel) async {
-//     try {
-//       await _hostelService.createHostel(hostel);
-//     } catch (e) {
-//       rethrow;
-//     }
-//   }
+  // Add new hostel
+  Future<void> addHostel(HostelModel hostel) async {
+    try {
+      await _hostelService.createHostel(hostel);
+    } catch (e) {
+      rethrow;
+    }
+  }
 
-//   // Update an existing hostel
-//   Future<void> updateHostel(HostelModel hostel) async {
-//     try {
-//       await _hostelService.updateHostel(hostel);
-//       notifyListeners();
-//     } catch (e) {
-//       rethrow;
-//     }
-//   }
+  // Update an existing hostel
+  Future<void> updateHostel(HostelModel hostel) async {
+    try {
+      await _hostelService.updateHostel(hostel);
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
 
-//   // Delete a hostel
-//   Future<void> deleteHostel(String hostelId) async {
-//     try {
-//       await _hostelService.deleteHostel(hostelId);
-//       notifyListeners();
-//     } catch (e) {
-//       rethrow;
-//     }
-//   }
-// }
+  // Delete a hostel
+  Future<void> deleteHostel(String hostelId) async {
+    try {
+      await _hostelService.deleteHostel(hostelId);
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
+}
