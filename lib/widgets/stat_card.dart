@@ -5,6 +5,7 @@ class StatCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
+  final bool small; // 👈 NEW
 
   const StatCard({
     super.key,
@@ -12,34 +13,55 @@ class StatCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.color,
+    this.small = false, // 👈 default normal size
   });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.all(6),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 12),
-            Text(value,
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text(title,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-          ],
-        ),
+    return Container(
+      padding: EdgeInsets.all(small ? 10 : 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: small ? 4 : 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(small ? 8 : 12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: small ? 18 : 26),
+          ),
+          SizedBox(width: small ? 10 : 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: small ? 12 : 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: small ? 16 : 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
