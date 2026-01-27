@@ -1,134 +1,104 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../providers/hostel_provider.dart';
-import '../../models/hostel_model.dart';
+// import 'package:flutter/material.dart';
+// import '../../models/hostel_model.dart';
+// import 'booking_screen.dart';
+// import '../../widgets/image_carousel.dart';
 
-class RoomDetailScreen extends StatelessWidget {
-  const RoomDetailScreen({super.key});
+// class RoomDetailScreen extends StatelessWidget {
+//   final HostelModel hostel;
 
-  @override
-  Widget build(BuildContext context) {
-    final hostelId = ModalRoute.of(context)!.settings.arguments as String;
-    final hostelProvider = Provider.of<HostelProvider>(context);
+//   const RoomDetailScreen({required this.hostel, super.key});
 
-    // Find the hostel by ID
-    final hostel =
-        hostelProvider.hostels.firstWhere((hostel) => hostel.id == hostelId);
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: Text(hostel.name)),
+//       body: ListView(
+//         padding: const EdgeInsets.all(16),
+//         children: [
+//           // Image carousel
+//           ImageCarousel(imageUrls: hostel.images),
+//           const SizedBox(height: 16),
 
-    return Scaffold(
-      appBar: AppBar(title: Text(hostel.name)),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image carousel
-            SizedBox(
-              height: 250,
-              child: PageView.builder(
-                itemCount: hostel.images.isNotEmpty ? hostel.images.length : 1,
-                itemBuilder: (context, index) {
-                  return ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(12)),
-                    child: hostel.images.isNotEmpty
-                        ? Image.network(
-                            hostel.images[index],
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                          )
-                        : Container(
-                            color: Colors.grey[300],
-                            child: const Center(
-                              child: Icon(Icons.home, size: 60),
-                            ),
-                          ),
-                  );
-                },
-              ),
-            ),
+//           // Hostel name and location
+//           Text(
+//             hostel.name,
+//             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+//           ),
+//           Text(
+//             hostel.location,
+//             style: const TextStyle(fontSize: 16, color: Colors.grey),
+//           ),
+//           const SizedBox(height: 8),
 
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Hostel name and price
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          hostel.name,
-                          style: const TextStyle(
-                              fontSize: 22, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Text('KES ${hostel.price}/mo',
-                          style: const TextStyle(
-                              fontSize: 18, color: Colors.blue)),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
+//           // Price and available rooms
+//           Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: [
+//               Text('Price: KES ${hostel.price}/mo',
+//                   style: const TextStyle(
+//                       fontSize: 18, fontWeight: FontWeight.bold)),
+//               Text('Available: ${hostel.availableRooms}',
+//                   style: const TextStyle(fontSize: 16)),
+//             ],
+//           ),
+//           const SizedBox(height: 16),
 
-                  // Location
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on, size: 18),
-                      const SizedBox(width: 4),
-                      Text(hostel.location,
-                          style: const TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
+//           // Description
+//           const Text(
+//             'Description',
+//             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//           ),
+//           const SizedBox(height: 6),
+//           Text(hostel.description, style: const TextStyle(fontSize: 16)),
+//           const SizedBox(height: 16),
 
-                  // Description
-                  const Text('Description',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
-                  Text(hostel.description, style: const TextStyle(fontSize: 15)),
-                  const SizedBox(height: 16),
+//           // Amenities
+//           if (hostel.sharedItems.isNotEmpty) ...[
+//             const Text(
+//               'Amenities',
+//               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+//             ),
+//             const SizedBox(height: 6),
+//             Wrap(
+//               spacing: 8,
+//               children: hostel.sharedItems
+//                   .map((item) => Chip(label: Text(item)))
+//                   .toList(),
+//             ),
+//             const SizedBox(height: 16),
+//           ],
 
-                  // Shared amenities
-                  if (hostel.sharedItems.isNotEmpty) ...[
-                    const Text('Amenities',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 8,
-                      children: hostel.sharedItems
-                          .map((item) => Chip(label: Text(item)))
-                          .toList(),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+//           // Terms & Conditions
+//           ExpansionTile(
+//             title: const Text('Terms and Conditions'),
+//             children: const [
+//               Padding(
+//                 padding: EdgeInsets.all(8.0),
+//                 child: Text(
+//                     'Bookings are subject to landlord approval before payment.'),
+//               ),
+//             ],
+//           ),
+//           const SizedBox(height: 16),
 
-                  // Available rooms and booking button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Available: ${hostel.availableRooms}',
-                          style: const TextStyle(fontSize: 16)),
-                      ElevatedButton(
-                        onPressed: hostel.availableRooms > 0
-                            ? () {
-                                Navigator.pushNamed(context, '/booking',
-                                    arguments: hostel.id);
-                              }
-                            : null,
-                        child: Text(hostel.availableRooms > 0
-                            ? 'Book Now'
-                            : 'No rooms available'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+//           // Book Now Button
+//           ElevatedButton(
+//             onPressed: hostel.availableRooms > 0
+//                 ? () {
+//                     Navigator.push(
+//                       context,
+//                       MaterialPageRoute(
+//                         builder: (_) => BookingScreen(hostel: hostel),
+//                       ),
+//                     );
+//                   }
+//                 : null,
+//             child: Text(
+//               hostel.availableRooms > 0 ? 'Book Now' : 'No rooms available',
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }

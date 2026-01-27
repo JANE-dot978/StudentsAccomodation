@@ -1,85 +1,125 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../models/booking_model.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/booking_provider.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:flutter/material.dart';
+// import 'package:provider/provider.dart';
+// import '../../models/hostel_model.dart';
+// import '../../models/booking_model.dart';
+// import '../../providers/booking_provider.dart';
+// import '../../providers/auth_provider.dart';
 
-class BookingScreen extends StatefulWidget {
-  const BookingScreen({super.key});
+// class BookingScreen extends StatefulWidget {
+//   final HostelModel hostel;
 
-  @override
-  State<BookingScreen> createState() => _BookingScreenState();
-}
+//   const BookingScreen({required this.hostel, super.key});
 
-class _BookingScreenState extends State<BookingScreen> {
-  bool _isBooking = false;
+//   @override
+//   State<BookingScreen> createState() => _BookingScreenState();
+// }
 
-  @override
-  Widget build(BuildContext context) {
-    final bookingProvider = Provider.of<BookingProvider>(context);
-    final authProvider = Provider.of<AuthProvider>(context);
-    final hostelId = ModalRoute.of(context)!.settings.arguments as String;
+// class _BookingScreenState extends State<BookingScreen> {
+//   final _formKey = GlobalKey<FormState>();
+//   final _roomsController = TextEditingController();
+//   bool _termsAccepted = false;
+//   bool _isLoading = false;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Confirm Booking')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const Text(
-              'Do you want to confirm your booking for this hostel?',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 24),
-            bookingProvider.isLoading || _isBooking
-                ? const CircularProgressIndicator()
-                : SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        setState(() => _isBooking = true);
+//   @override
+//   void dispose() {
+//     _roomsController.dispose();
+//     super.dispose();
+//   }
 
-                        try {
-                          final booking = Booking(
-                            id: DateTime.now().millisecondsSinceEpoch.toString(),
-                            studentId: authProvider.user!.uid,
-                            landlordId: 'landlord_placeholder',
-                            hostelId: hostelId,
-                            roomId: 'defaultRoom',
-                            checkInDate: DateTime.now(),
-                            checkOutDate: DateTime.now().add(const Duration(days: 30)),
-                            totalPrice: 9000,
-                            status: 'pending',
-                            createdAt: Timestamp.now(),
-                          );
+//   Future<void> _submitBooking() async {
+//     if (!_formKey.currentState!.validate() || !_termsAccepted) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//           const SnackBar(content: Text('Please fill form and accept terms')));
+//       return;
+//     }
 
-                          await bookingProvider.createBooking(booking);
+//     setState(() => _isLoading = true);
 
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Booking request sent! Waiting for approval.')),
-                          );
+//     try {
+//       final bookingProvider =
+//           Provider.of<BookingProvider>(context, listen: false);
+//       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-                          Navigator.pushReplacementNamed(
-                              context, '/student_dashboard');
-                        } catch (e) {
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e')),
-                          );
-                        } finally {
-                          setState(() => _isBooking = false);
-                        }
-                      },
-                      child: const Text('Confirm Booking'),
-                    ),
-                  ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+//       final rooms = int.parse(_roomsController.text);
+
+//       final booking = Booking(
+//         id: '',
+//         studentId: authProvider.user!.uid,
+//         landlordId: widget.hostel.landlordId,
+//         hostelId: widget.hostel.id,
+//         roomId: '', // optional for now
+//         checkInDate: DateTime.now(),
+//         checkOutDate: DateTime.now().add(const Duration(days: 30)),
+//         totalPrice: widget.hostel.price * rooms,
+//         status: 'pending',
+//         createdAt: Timestamp.now(),
+//       );
+
+//       await bookingProvider.createBooking(booking);
+
+//       if (!mounted) return;
+//       ScaffoldMessenger.of(context)
+//           .showSnackBar(const SnackBar(content: Text('Booking submitted successfully')));
+//       Navigator.pop(context);
+//     } catch (e) {
+//       ScaffoldMessenger.of(context)
+//           .showSnackBar(SnackBar(content: Text('Booking failed: $e')));
+//     } finally {
+//       if (mounted) setState(() => _isLoading = false);
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: const Text('Book Hostel')),
+//       body: Padding(
+//         padding: const EdgeInsets.all(16),
+//         child: _isLoading
+//             ? const Center(child: CircularProgressIndicator())
+//             : Form(
+//                 key: _formKey,
+//                 child: Column(
+//                   children: [
+//                     TextFormField(
+//                       controller: _roomsController,
+//                       keyboardType: TextInputType.number,
+//                       decoration: const InputDecoration(
+//                         labelText: 'Number of Rooms',
+//                       ),
+//                       validator: (v) {
+//                         if (v == null || v.isEmpty) return 'Required';
+//                         final value = int.tryParse(v);
+//                         if (value == null || value <= 0)
+//                           return 'Enter valid number';
+//                         if (value > widget.hostel.availableRooms)
+//                           return 'Not enough rooms';
+//                         return null;
+//                       },
+//                     ),
+//                     const SizedBox(height: 16),
+//                     Row(
+//                       children: [
+//                         Checkbox(
+//                           value: _termsAccepted,
+//                           onChanged: (val) =>
+//                               setState(() => _termsAccepted = val ?? false),
+//                         ),
+//                         const Expanded(
+//                             child: Text(
+//                                 'I accept the terms and conditions of booking.'))
+//                       ],
+//                     ),
+//                     const SizedBox(height: 16),
+//                     ElevatedButton(
+//                       onPressed: _submitBooking,
+//                       child: const Text('Submit Booking'),
+//                     )
+//                   ],
+//                 ),
+//               ),
+//       ),
+//     );
+//   }
+// }

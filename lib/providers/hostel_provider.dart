@@ -9,15 +9,20 @@ class HostelProvider with ChangeNotifier {
   bool isLoading = false;
 
   // For student home screen
-  void fetchHostels() {
+  Future<void> fetchHostels() async {
     isLoading = true;
     notifyListeners();
 
-    _hostelService.getAllHostels().listen((hostelList) {
-      hostels = hostelList;
-      isLoading = false;
-      notifyListeners();
-    });
+    try {
+      // Get the first snapshot from the stream
+      final snapshot = await _hostelService.getAllHostels().first;
+      hostels = snapshot;
+    } catch (e) {
+      hostels = [];
+    }
+
+    isLoading = false;
+    notifyListeners();
   }
 
   // For landlord property screen
