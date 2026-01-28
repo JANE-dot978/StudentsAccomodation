@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/hostel_model.dart';
 import '../../widgets/hostels_cards.dart';
 
+
 class PropertyScreen extends StatelessWidget {
   const PropertyScreen({super.key});
 

@@ -176,3 +176,73 @@ class StyledHostelCard extends StatelessWidget {
     );
   }
 }
+
+
+
+// import 'package:flutter/material.dart';
+// import '../models/hostel_model.dart';
+
+// class StyledHostelCard extends StatefulWidget {
+//   final HostelModel hostel;
+//   final VoidCallback onTap;
+
+//   const StyledHostelCard(
+//       {super.key, required this.hostel, required this.onTap});
+
+//   @override
+//   State<StyledHostelCard> createState() => _StyledHostelCardState();
+// }
+
+// class _StyledHostelCardState extends State<StyledHostelCard> {
+//   bool liked = false;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: widget.onTap,
+//       child: Container(
+//         decoration: BoxDecoration(
+//           color: Colors.white,
+//           borderRadius: BorderRadius.circular(16),
+//           boxShadow: const [
+//             BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))
+//           ],
+//         ),
+//         child: Column(children: [
+//           Stack(children: [
+//             ClipRRect(
+//               borderRadius:
+//                   const BorderRadius.vertical(top: Radius.circular(16)),
+//               child: Image.network(widget.hostel.images.first,
+//                   height: 180, width: double.infinity, fit: BoxFit.cover),
+//             ),
+//             Positioned(
+//               right: 10,
+//               top: 10,
+//               child: IconButton(
+//                 icon: Icon(liked ? Icons.favorite : Icons.favorite_border,
+//                     color: Colors.red),
+//                 onPressed: () => setState(() => liked = !liked),
+//               ),
+//             ),
+//           ]),
+//           Padding(
+//             padding: const EdgeInsets.all(12),
+//             child:
+//                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+//               Text(widget.hostel.name,
+//                   style: const TextStyle(
+//                       fontSize: 18, fontWeight: FontWeight.bold)),
+//               Text(widget.hostel.location,
+//                   style: const TextStyle(color: Colors.grey)),
+//               const SizedBox(height: 6),
+//               Text("KES ${widget.hostel.price}/month",
+//                   style: const TextStyle(
+//                       fontSize: 16, fontWeight: FontWeight.bold)),
+//             ]),
+//           )
+//         ]),
+//       ),
+//     );
+//   }
+// }
