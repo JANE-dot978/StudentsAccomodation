@@ -8,7 +8,7 @@ class Booking {
   final String roomId;
   final DateTime checkInDate;
   final DateTime checkOutDate;
-  final int totalPrice;
+  final double totalPrice; // ✅ changed to double
   final String status;
   final Timestamp createdAt;
 
@@ -20,7 +20,7 @@ class Booking {
     required this.roomId,
     required this.checkInDate,
     required this.checkOutDate,
-    required this.totalPrice,
+    required this.totalPrice, // ✅ double
     required this.status,
     required this.createdAt,
   });
@@ -35,7 +35,7 @@ class Booking {
       roomId: data['roomId'] ?? '',
       checkInDate: (data['checkInDate'] as Timestamp).toDate(),
       checkOutDate: (data['checkOutDate'] as Timestamp).toDate(),
-      totalPrice: data['totalPrice'] ?? 0,
+      totalPrice: (data['totalPrice'] ?? 0).toDouble(), // ✅ ensure double
       status: data['status'] ?? 'pending',
       createdAt: data['createdAt'] ?? Timestamp.now(),
     );
@@ -49,7 +49,7 @@ class Booking {
       'roomId': roomId,
       'checkInDate': Timestamp.fromDate(checkInDate),
       'checkOutDate': Timestamp.fromDate(checkOutDate),
-      'totalPrice': totalPrice,
+      'totalPrice': totalPrice, // ✅ double
       'status': status,
       'createdAt': createdAt,
     };
