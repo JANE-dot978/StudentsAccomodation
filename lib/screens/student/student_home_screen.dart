@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'categories/bedsitter_screen.dart';
+import 'categories/shared_room_screen.dart';
+import 'categories/single_room_screen.dart';
+
 
 class StudentHomeScreen extends StatelessWidget {
   const StudentHomeScreen({super.key});
