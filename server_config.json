@@ -1,0 +1,10 @@
+// Server configuration file
+// This is the URL your Flutter app uses to reach the backend
+
+{
+  "serverUrl": "http://192.168.1.66:8080",
+  "serverPort": 8080,
+  "serverIP": "192.168.1.66",
+  "description": "M-Pesa backend server location",
+  "note": "Make sure this IP matches your computer. Run 'ipconfig' to verify."
+}

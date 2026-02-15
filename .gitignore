@@ -1,104 +1,159 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-# Miscellaneous
+# =========================================================
+
+# GENERAL / OS
+
+# =========================================================
+
 .DS_Store
-.atom/
-.build/
-.buildlog/
+Thumbs.db
+*.swp
+*.lock
+*.log
+*.log.*
+logs/
+coverage/
 .history
 .svn/
-.swiftpm/
-migrate_working_dir/
+.atom/
 
-# IntelliJ related
+# =========================================================
+
+# IDEs
+
+# =========================================================
+
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+.vscode/
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# =========================================================
+
+# DART / FLUTTER
+
+# =========================================================
+
 .dart_tool/
 .packages
 .flutter-plugins
 .flutter-plugins-dependencies
 .flutter-version
-/build/
-/ios/Flutter/Flutter.framework
-/ios/Flutter/Flutter.podspec
-**/Generated.xcconfig
-**/ios/Pods/
+build/
+**/doc/api/
 
-# Pub
-pubspec.lock
+# Generated dart files
 
-# Android
-/android/.gradle/
-**/local.properties
-**/app/google-services.json
-**/google-services.json
-**/*.keystore
-**/*.jks
+*.g.dart
+*.freezed.dart
+
+# Flutter iOS
+
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/.last_build_id
+ios/Flutter/Generated.xcconfig
+ios/Pods/
+ios/Runner.xcworkspace/
+
+# Flutter Android
+
+android/.gradle/
+android/local.properties
 android/key.properties
-.gradle/
-/captures/
+android/app/*.jks
+android/app/*.keystore
+captures/
 
-# iOS
-**/ios/Runner.xcworkspace/
-**/ios/Flutter/Generated.xcconfig
-**/ios/GoogleService-Info.plist
-**/ios/Pods/
+# Flutter Web
 
-# Web
-/web/build/
+web/build/
 
 # Desktop
-/build/
-**/cmake-build-debug/
 
-# Logs
+cmake-build-debug/
+
+# =========================================================
+
+# FIREBASE (VERY IMPORTANT)
+
+# =========================================================
+
+# Mobile config files
+
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# FlutterFire generated config
+
+lib/firebase_options.dart
+
+# Firebase CLI
+
+.firebase/
+.firebaserc
+.firebaserc.local
+firebase-debug.log
+
+# =========================================================
+
+# NODE.JS BACKEND
+
+# =========================================================
+
+node_modules/
+server/node_modules/
+server/mpesa/node_modules/
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Node
-node_modules/
-server/mpesa/node_modules/
+# =========================================================
 
-# Environment & Secrets
+# ENVIRONMENT VARIABLES / SECRETS
+
+# =========================================================
+
 .env
+.env.*
+!.env.example
+
 server/.env
 server/mpesa/.env
-server/mpesa/serviceAccountKey.json
+
+# Service accounts & private keys
+
+serviceAccountKey.json
 server/serviceAccountKey.json
+server/mpesa/serviceAccountKey.json
+
+# Certificates / keys
+
 *.pem
 *.key
 *.p12
-
-# Firebase
-.firebaserc
-.firebase/
-
-# Certificates
-*.cer
-*.crt
 *.pfx
+*.crt
+*.cer
 
-# Misc
-coverage/
+# =========================================================
+
+# PUB / DEPENDENCIES
+
+# =========================================================
+
+pubspec.lock
+
+# =========================================================
+
+# MISC
+
+# =========================================================
+
 .dump
-
-# Generated files
-*.g.dart
-*.freezed.dart
-
-# End of file
+migrate_working_dir/
+.build/
+.buildlog/
+.swiftpm/
