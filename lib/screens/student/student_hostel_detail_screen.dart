@@ -27,7 +27,7 @@ class HostelDetailScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Text('Description',
               style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(hostel.description ?? ''),
+          Text(hostel.description),
           const SizedBox(height: 16),
           ExpansionTile(
             title: const Text('Terms and Conditions'),

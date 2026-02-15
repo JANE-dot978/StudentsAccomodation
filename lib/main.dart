@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 
-import 'app.dart';
 import 'core/routes/app_routes.dart';
 import 'providers/auth_provider.dart';
 import 'providers/user_provider.dart';
@@ -11,6 +10,7 @@ import 'providers/room_provider.dart';
 import 'providers/booking_provider.dart';
 import 'providers/maintanance_provider.dart';
 import 'providers/shared_item_provider.dart';
+import 'providers/theme_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -22,6 +22,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => HostelProvider()),
@@ -35,18 +36,28 @@ void main() async {
   );
 }
 
-// Rename App -> MyApp to avoid conflicts
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Hostel & Bedsitter Management',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      initialRoute: AppRoutes.login,
-      routes: AppRoutes.routes,
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Cozy Corner - Student Living',
+
+          // Themes
+          theme: themeProvider.lightTheme,
+          darkTheme: themeProvider.darkTheme,
+          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+
+          // Routing
+          initialRoute: AppRoutes.login,
+          routes: AppRoutes.routes,
+          onGenerateRoute: AppRoutes.generateRoute,
+        );
+      },
     );
   }
 }

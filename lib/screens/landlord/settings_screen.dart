@@ -8,14 +8,28 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("Settings")),
       body: ListView(
-        children: const [
+        padding: const EdgeInsets.all(16),
+        children: [
           ListTile(
-            leading: Icon(Icons.lock),
-            title: Text("Change Password"),
+            leading: const Icon(Icons.lock),
+            title: const Text("Change Password"),
+            onTap: () {
+              // Add change password logic
+            },
           ),
           ListTile(
-            leading: Icon(Icons.notifications),
-            title: Text("Notifications"),
+            leading: const Icon(Icons.notifications),
+            title: const Text("Notifications"),
+            onTap: () {
+              // Add notification settings logic
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.palette),
+            title: const Text("Theme"),
+            onTap: () {
+              // Add theme change logic
+            },
           ),
         ],
       ),

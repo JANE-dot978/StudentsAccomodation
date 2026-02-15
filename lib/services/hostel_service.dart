@@ -4,16 +4,28 @@ import '../models/hostel_model.dart';
 class HostelService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Fetch all hostels (for students)
+  // ---------------- ALL HOSTELS (Students) ----------------
   Stream<List<HostelModel>> getAllHostels() {
-    return _firestore.collection('hostels').snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => HostelModel.fromFirestore(doc))
-          .toList();
-    });
+    return _firestore
+        .collection('hostels')
+        .where('availableRooms', isGreaterThan: 0)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => HostelModel.fromFirestore(doc)).toList());
   }
 
-  // Fetch hostels by landlord (for landlord dashboard)
+  // ---------------- CATEGORY ----------------
+  Stream<List<HostelModel>> getHostelsByCategory(String category) {
+    return _firestore
+        .collection('hostels')
+        .where('category', isEqualTo: category.toLowerCase().trim())
+        .where('availableRooms', isGreaterThan: 0)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => HostelModel.fromFirestore(doc)).toList());
+  }
+
+  // ---------------- LANDLORD ----------------
   Stream<List<HostelModel>> getHostelsByLandlord(String landlordId) {
     return _firestore
         .collection('hostels')
@@ -23,19 +35,20 @@ class HostelService {
             snapshot.docs.map((doc) => HostelModel.fromFirestore(doc)).toList());
   }
 
-  // Add a new hostel
+  // ---------------- CREATE ----------------
   Future<void> createHostel(HostelModel hostel) async {
-    final docRef = _firestore.collection('hostels').doc(); // auto-generated ID
-    hostel.id = docRef.id; // assign Firestore ID to the model
-    await docRef.set(hostel.toMap());
+    await _firestore.collection('hostels').add(hostel.toMap());
   }
 
-  // Update an existing hostel
+  // ---------------- UPDATE ----------------
   Future<void> updateHostel(HostelModel hostel) async {
-    await _firestore.collection('hostels').doc(hostel.id).update(hostel.toMap());
+    await _firestore.collection('hostels').doc(hostel.id).update({
+      ...hostel.toMap(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 
-  // Delete a hostel
+  // ---------------- DELETE ----------------
   Future<void> deleteHostel(String hostelId) async {
     await _firestore.collection('hostels').doc(hostelId).delete();
   }

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -29,8 +30,8 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   bool _isSaving = false;
   HostelModel? existingHostel;
 
-  // ⭐ Room Category
-  String _category = "Single Room";
+  // Category: what gets stored in database (match student category keys)
+  String _category = 'bedsitter';
 
   // Images
   List<Uint8List> _pickedImages = [];
@@ -41,6 +42,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final args = ModalRoute.of(context)?.settings.arguments;
+
     if (args != null && args is HostelModel && existingHostel == null) {
       existingHostel = args;
 
@@ -48,8 +50,8 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       _locationController.text = existingHostel!.location;
       _priceController.text = existingHostel!.price.toString();
       _roomsController.text = existingHostel!.availableRooms.toString();
-      _descriptionController.text = existingHostel!.description ?? '';
-      _category = existingHostel!.category ?? "Single Room";
+      _descriptionController.text = existingHostel!.description;
+      _category = existingHostel!.category;
     }
   }
 
@@ -92,7 +94,6 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
           _pickedImages.clear();
           _pickedImageNames.clear();
         });
-        return;
       },
     );
   }
@@ -104,12 +105,15 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
     final url = Uri.parse(
         'https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
     final request = http.MultipartRequest('POST', url)
       ..fields['upload_preset'] = uploadPreset
-      ..files
-          .add(http.MultipartFile.fromBytes('file', imageBytes, filename: fileName));
+      ..files.add(
+        http.MultipartFile.fromBytes('file', imageBytes, filename: fileName),
+      );
 
     final response = await request.send();
+
     if (response.statusCode == 200) {
       final respStr = await response.stream.bytesToString();
       return jsonDecode(respStr)['secure_url'];
@@ -132,6 +136,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
     try {
       List<String> imageUrls = [];
+
       for (int i = 0; i < _pickedImages.length; i++) {
         final url = await uploadImage(_pickedImages[i], _pickedImageNames[i]);
         if (url != null) imageUrls.add(url);
@@ -140,7 +145,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       final hostelProvider = Provider.of<HostelProvider>(context, listen: false);
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      final hostel = HostelModel(
+        final hostel = HostelModel(
         id: existingHostel?.id ?? '',
         name: _nameController.text.trim(),
         location: _locationController.text.trim(),
@@ -151,7 +156,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             : existingHostel?.images ?? [],
         landlordId: authProvider.user!.uid,
         description: _descriptionController.text.trim(),
-        category: _category,
+        category: _category, // Stores: 'single room', 'bedsitter', or 'shared room'
         sharedItems: existingHostel?.sharedItems ?? [],
       );
 
@@ -163,6 +168,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
       if (!mounted) return;
       Navigator.pop(context);
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
@@ -188,33 +194,47 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
             children: [
               _buildField(_nameController, 'Hostel Name'),
               _buildField(_locationController, 'Location'),
-              _buildField(_priceController, 'Price (KES)', number: true),
-              _buildField(_roomsController, 'Available Rooms', number: true),
+              _buildField(_priceController, 'Price (KES)', number: true, isInteger: false),
+              _buildField(_roomsController, 'Available Rooms', number: true, isInteger: true),
               _buildField(_descriptionController, 'Description', maxLines: 4),
+
               const SizedBox(height: 20),
+
+              // CATEGORY DROPDOWN
               DropdownButtonFormField<String>(
                 value: _category,
                 decoration: _inputDecoration('Room Category'),
-                items: ['Single Room', 'Bedsitter', 'Shared Room']
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
+                items: const [
+                  DropdownMenuItem(value: 'single room', child: Text('Single Room')),
+                  DropdownMenuItem(value: 'bedsitter', child: Text('Bedsitter')),
+                  DropdownMenuItem(value: 'shared room', child: Text('Shared Room')),
+                ],
                 onChanged: (val) => setState(() => _category = val!),
               ),
+
               const SizedBox(height: 20),
+
               Align(
                 alignment: Alignment.centerLeft,
-                child: Text('Hostel Images',
-                    style: Theme.of(context).textTheme.titleMedium),
+                child: Text(
+                  'Hostel Images',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
               const SizedBox(height: 10),
+
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
                 children: [
                   ..._pickedImages.map((bytes) => ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: Image.memory(bytes,
-                            width: 110, height: 110, fit: BoxFit.cover),
+                        child: Image.memory(
+                          bytes,
+                          width: 110,
+                          height: 110,
+                          fit: BoxFit.cover,
+                        ),
                       )),
                   GestureDetector(
                     onTap: _pickImages,
@@ -230,7 +250,9 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                   ),
                 ],
               ),
+
               const SizedBox(height: 30),
+
               _isSaving
                   ? const CircularProgressIndicator()
                   : SizedBox(
@@ -238,11 +260,11 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                       height: 55,
                       child: ElevatedButton(
                         onPressed: _saveHostel,
-                        child: Text(existingHostel == null
-                            ? 'ADD HOSTEL'
-                            : 'UPDATE HOSTEL'),
+                        child: Text(
+                          existingHostel == null ? 'ADD HOSTEL' : 'UPDATE HOSTEL',
+                        ),
                       ),
-                    )
+                    ),
             ],
           ),
         ),
@@ -250,15 +272,50 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
     );
   }
 
-  Widget _buildField(TextEditingController controller, String label,
-      {bool number = false, int maxLines = 1}) {
+  Widget _buildField(
+    TextEditingController controller,
+    String label, {
+    bool number = false,
+    bool isInteger = false,
+    int maxLines = 1,
+  }) {
+    List<TextInputFormatter> inputFormatters = [];
+    
+    if (number) {
+      if (isInteger) {
+        // Integer only - digits only
+        inputFormatters = [
+          FilteringTextInputFormatter.digitsOnly,
+        ];
+      } else {
+        // Decimal number - digits and one decimal point
+        inputFormatters = [
+          FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+        ];
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
         controller: controller,
         keyboardType: number ? TextInputType.number : TextInputType.text,
+        inputFormatters: inputFormatters,
         maxLines: maxLines,
-        validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+        validator: (v) {
+          if (v == null || v.isEmpty) return 'Required';
+          if (number) {
+            final value = v.trim();
+            if (isInteger) {
+              if (int.tryParse(value) == null) return 'Enter a valid integer';
+              if (int.parse(value) < 0) return 'Cannot be negative';
+            } else {
+              if (double.tryParse(value) == null) return 'Enter a valid number';
+              if (double.parse(value) < 0) return 'Cannot be negative';
+            }
+          }
+          return null;
+        },
         decoration: _inputDecoration(label),
       ),
     );

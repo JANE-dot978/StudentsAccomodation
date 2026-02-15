@@ -7,7 +7,7 @@ import '../../widgets/app_name_text_widget.dart';
 import '../../widgets/loading_management.dart';
 import '../../widgets/subtittle_text_widget.dart';
 import '../../widgets/titles_text_widget.dart';
-import 'register_screen.dart';
+
 import '../../core/routes/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -73,9 +73,11 @@ class _LoginScreenState extends State<LoginScreen> {
       final user = userProvider.getUser;
       if (user != null && mounted) {
         if (user.role == 'student' || user.role == 'user') {
-          Navigator.pushReplacementNamed(context, AppRoutes.studentHome);
+          // ✅ FIXED: Navigate to MainNavigationScreen (with bottom nav)
+          Navigator.pushReplacementNamed(context, AppRoutes.mainNavigation);
         } else if (user.role == 'landlord') {
-          Navigator.pushReplacementNamed(context, AppRoutes.landlordDashboard);
+          // ✅ FIXED: Navigate to LandlordMainNavigation (with bottom nav)
+          Navigator.pushReplacementNamed(context, AppRoutes.landlordMain);
         } else if (user.role == 'admin') {
           Navigator.pushReplacementNamed(context, AppRoutes.adminDashboard);
         }

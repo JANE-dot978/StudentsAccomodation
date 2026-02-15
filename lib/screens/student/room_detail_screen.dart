@@ -49,12 +49,12 @@ class RoomDetailScreen extends StatelessWidget {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
-          Text(hostel.description ?? 'No description available',
+          Text(hostel.description,
               style: const TextStyle(fontSize: 16)),
           const SizedBox(height: 16),
 
           // Amenities
-          if ((hostel.sharedItems ?? []).isNotEmpty) ...[
+          if (hostel.sharedItems.isNotEmpty) ...[
             const Text(
               'Amenities',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -62,7 +62,7 @@ class RoomDetailScreen extends StatelessWidget {
             const SizedBox(height: 6),
             Wrap(
               spacing: 8,
-              children: (hostel.sharedItems ?? [])
+              children: hostel.sharedItems
                   .map((item) => Chip(label: Text(item)))
                   .toList(),
             ),

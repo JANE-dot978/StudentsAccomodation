@@ -21,6 +21,7 @@ class AuthProvider extends ChangeNotifier {
     });
   }
 
+  // 🔹 REGISTER
   Future<void> register({
     required String fullName,
     required String email,
@@ -33,14 +34,15 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      // Create user account
       UserCredential userCredential =
           await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Store additional user data in Firestore
+      // Update display name
+      await userCredential.user!.updateDisplayName(fullName);
+
       await _firestore.collection('users').doc(userCredential.user!.uid).set({
         'fullName': fullName,
         'email': email,
@@ -60,6 +62,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // 🔹 LOGIN
   Future<void> login({
     required String email,
     required String password,
@@ -86,6 +89,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // 🔹 LOGOUT
   Future<void> logout() async {
     try {
       await _firebaseAuth.signOut();
@@ -98,6 +102,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // 🔹 RESET PASSWORD
   Future<void> resetPassword(String email) async {
     try {
       _isLoading = true;
@@ -113,5 +118,84 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  // 🔹 UPDATE PROFILE (name & email)
+  Future<void> updateProfile({
+    String? fullName,
+    String? email,
+  }) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      if (_user != null) {
+        // Update Firebase Auth display name
+        if (fullName != null && fullName.isNotEmpty) {
+          await _user!.updateDisplayName(fullName);
+        }
+
+        // Update Firebase Auth email
+        if (email != null && email.isNotEmpty && email != _user!.email) {
+          await _user!.updateEmail(email);
+        }
+
+        // Update Firestore
+        await _firestore.collection('users').doc(_user!.uid).update({
+          if (fullName != null) 'fullName': fullName,
+          if (email != null) 'email': email,
+        });
+
+        // Reload user to reflect changes
+        await _user!.reload();
+        _user = _firebaseAuth.currentUser;
+      }
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // 🔹 DELETE ACCOUNT
+  Future<void> deleteAccount() async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      if (_user != null) {
+        // Delete Firestore user document
+        await _firestore.collection('users').doc(_user!.uid).delete();
+        // Delete Firebase Auth account
+        await _user!.delete();
+        _user = null;
+      }
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  // 🔹 FETCH CURRENT USER DATA FROM FIRESTORE
+  Future<Map<String, dynamic>?> getUserData() async {
+    if (_user == null) return null;
+
+    DocumentSnapshot doc =
+        await _firestore.collection('users').doc(_user!.uid).get();
+    if (doc.exists) {
+      return doc.data() as Map<String, dynamic>;
+    }
+    return null;
   }
 }

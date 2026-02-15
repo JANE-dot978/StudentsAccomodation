@@ -5,57 +5,34 @@ import '../services/hostel_service.dart';
 class HostelProvider with ChangeNotifier {
   final HostelService _hostelService = HostelService();
 
-  List<HostelModel> hostels = [];
-  bool isLoading = false;
+  // ⭐ REMOVE OLD LIST LOGIC
+  // Students should NOT rely on a cached list.
 
-  // For student home screen
-  Future<void> fetchHostels() async {
-    isLoading = true;
-    notifyListeners();
-
-    try {
-      // Get the first snapshot from the stream
-      final snapshot = await _hostelService.getAllHostels().first;
-      hostels = snapshot;
-    } catch (e) {
-      hostels = [];
-    }
-
-    isLoading = false;
-    notifyListeners();
+  // ---------------- STUDENT STREAM ----------------
+  Stream<List<HostelModel>> getAllHostelsStream() {
+    return _hostelService.getAllHostels();
   }
 
-  // For landlord property screen
+  // ⭐ CATEGORY FILTER STREAM
+  Stream<List<HostelModel>> getHostelsByCategory(String category) {
+    return _hostelService.getHostelsByCategory(category);
+  }
+
+  // ---------------- LANDLORD ----------------
   Stream<List<HostelModel>> getLandlordHostels(String landlordId) {
     return _hostelService.getHostelsByLandlord(landlordId);
   }
 
-  // Add new hostel
+  // ---------------- CRUD ----------------
   Future<void> addHostel(HostelModel hostel) async {
-    try {
-      await _hostelService.createHostel(hostel);
-    } catch (e) {
-      rethrow;
-    }
+    await _hostelService.createHostel(hostel);
   }
 
-  // Update an existing hostel
   Future<void> updateHostel(HostelModel hostel) async {
-    try {
-      await _hostelService.updateHostel(hostel);
-      notifyListeners();
-    } catch (e) {
-      rethrow;
-    }
+    await _hostelService.updateHostel(hostel);
   }
 
-  // Delete a hostel
   Future<void> deleteHostel(String hostelId) async {
-    try {
-      await _hostelService.deleteHostel(hostelId);
-      notifyListeners();
-    } catch (e) {
-      rethrow;
-    }
+    await _hostelService.deleteHostel(hostelId);
   }
 }
