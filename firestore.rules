@@ -4,8 +4,9 @@ service cloud.firestore {
     
     // ===== USERS COLLECTION =====
     match /users/{userId} {
-      // Users can read their own profile
-      allow read: if request.auth.uid == userId;
+      // Users can read their own profile; admins can read any profile (needed for landlord/user management queries)
+      allow read: if request.auth.uid == userId ||
+                     (request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
       // Users can update their own profile
       allow update: if request.auth.uid == userId;
       // New users can create their profile

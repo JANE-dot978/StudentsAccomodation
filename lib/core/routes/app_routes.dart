@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 // ===== AUTH =====
 import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/register_screen.dart';
+import '../../screens/auth/forgot_password_screen.dart'; // ✅ ADD THIS
 
 // ===== MAIN NAV =====
 import '../../screens/main_navigation_screen.dart';
@@ -44,6 +45,7 @@ class AppRoutes {
   // ================= AUTH =================
   static const String login = '/login';
   static const String register = '/register';
+  static const String forgotPassword = '/forgot-password';
 
   // ================= MAIN =================
   static const String mainNavigation = '/main';
@@ -72,7 +74,6 @@ class AppRoutes {
   static const String addHostel = '/add-hostel';
   static const String landlordMain = '/landlord-main';
 
-
   // ================= ADMIN =================
   static const String adminDashboard = '/admin-dashboard';
 
@@ -83,6 +84,7 @@ class AppRoutes {
     // AUTH
     login: (context) => const LoginScreen(),
     register: (context) => const RegisterScreen(),
+    forgotPassword: (context) => const ForgotPasswordScreen(), // ✅ ADDED
 
     // MAIN NAV
     mainNavigation: (context) => const MainNavigationScreen(),
@@ -106,7 +108,6 @@ class AppRoutes {
     landlordProfile: (context) => const landlord.ProfileScreen(),
     addHostel: (context) => const AddHostelScreen(),
     landlordMain: (context) => const LandlordMainNavigation(),
-
 
     // ADMIN
     adminDashboard: (context) => const AdminDashboard(),
@@ -180,12 +181,12 @@ class AppRoutes {
 
   /// Landlord
   static void navigateToLandlord(BuildContext context) {
-  Navigator.pushNamedAndRemoveUntil(
-    context,
-    landlordMain,
-    (route) => false,
-  );
-}
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      landlordMain,
+      (route) => false,
+    );
+  }
 
   /// Admin
   static void navigateToAdmin(BuildContext context) {
@@ -196,7 +197,7 @@ class AppRoutes {
     );
   }
 
-  /// Role router (VERY IMPORTANT)
+  /// Role router
   static void navigateByRole(BuildContext context, String role) {
     switch (role.toLowerCase()) {
       case 'student':

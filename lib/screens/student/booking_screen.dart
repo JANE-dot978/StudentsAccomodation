@@ -56,6 +56,7 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
+  @override
   Widget build(BuildContext context) {
     // If no hostel is provided, show bookings list
     if (widget.hostel == null) {

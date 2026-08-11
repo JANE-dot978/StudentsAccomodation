@@ -13,7 +13,7 @@ class MaintenanceProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Fetch maintenance requests for a hostel
+  
   Future<void> fetchHostelMaintenance(String hostelId) async {
     try {
       _isLoading = true;
@@ -39,7 +39,7 @@ class MaintenanceProvider extends ChangeNotifier {
     }
   }
 
-  // Fetch maintenance requests reported by a student
+  
   Future<void> fetchStudentReports(String studentId) async {
     try {
       _isLoading = true;
@@ -65,7 +65,7 @@ class MaintenanceProvider extends ChangeNotifier {
     }
   }
 
-  // Create a new maintenance request
+  
   Future<String?> reportMaintenance(Maintenance maintenance) async {
     try {
       _isLoading = true;
@@ -85,7 +85,7 @@ class MaintenanceProvider extends ChangeNotifier {
     }
   }
 
-  // Update maintenance status
+
   Future<bool> updateStatus(String maintenanceId, String newStatus) async {
     try {
       await _firestore.collection('maintenance').doc(maintenanceId).update({
@@ -110,7 +110,7 @@ class MaintenanceProvider extends ChangeNotifier {
     }
   }
 
-  // Assign maintenance to someone
+  
   Future<bool> assignMaintenance(String maintenanceId, String assignedTo) async {
     try {
       await _firestore.collection('maintenance').doc(maintenanceId).update({
@@ -133,7 +133,7 @@ class MaintenanceProvider extends ChangeNotifier {
     }
   }
 
-  // Clear maintenance requests
+
   void clearMaintenance() {
     _maintenanceRequests = [];
     notifyListeners();

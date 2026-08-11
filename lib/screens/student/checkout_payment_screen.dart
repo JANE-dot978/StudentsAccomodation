@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:studentsaccomodations/services/payment_polling_services.dart';
 import '../../models/booking_model.dart';
-import '../../providers/booking_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../services/payment_service.dart';
+
 
 class CheckoutPaymentScreen extends StatefulWidget {
   final Booking booking;
@@ -15,7 +14,9 @@ class CheckoutPaymentScreen extends StatefulWidget {
 }
 
 class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
-  final PaymentService _paymentService = PaymentService(baseUrl: 'http://192.168.1.66:8080');
+  final PaymentService _paymentService = PaymentService(); // ✅ Use default URL
+  final PaymentPollingService _pollingService = PaymentPollingService();
+
   final _phoneController = TextEditingController();
   bool _isProcessing = false;
   String? _paymentError;
@@ -37,13 +38,35 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
       return;
     }
 
+    // Validate phone number
+    if (!PaymentService.isValidPhoneNumber(_phoneController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Invalid phone number. Use format: 0712345678'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isProcessing = true;
       _paymentError = null;
     });
 
     try {
-      // Initiate STK push
+      // Step 1: Test connection
+      print('🔗 Testing backend connection...');
+      final isConnected = await _paymentService.testConnection();
+      
+      if (!isConnected) {
+        throw Exception('Cannot connect to payment server. Please check your internet connection.');
+      }
+
+      print('✅ Backend connected');
+
+      // Step 2: Initiate payment
+      print('💳 Initiating M-Pesa STK push...');
       final result = await _paymentService.initiateSTKPush(
         bookingId: widget.booking.id,
         phoneNumber: _phoneController.text,
@@ -54,51 +77,51 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
       if (!mounted) return;
 
       if (result['success']) {
-        // Show success dialog
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Payment Initiated'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(result['customerMessage'] ?? 'Check your phone for the M-Pesa prompt'),
-                const SizedBox(height: 16),
-                const Text(
-                  'Instructions:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text('1. You will receive an M-Pesa prompt on your phone\n'
-                    '2. Enter your M-Pesa PIN to complete the payment\n'
-                    '3. Your booking will be confirmed once payment is successful'),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context); // Return to bookings list
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
+        final checkoutRequestId = result['checkoutRequestId'];
+        
+        // Show processing dialog
+        _showPaymentProcessingDialog(checkoutRequestId);
+
+        // Step 3: Poll for payment status
+        final paymentResult = await _pollingService.pollPaymentStatus(
+          bookingId: widget.booking.id,
+          timeout: const Duration(minutes: 3),
         );
 
-        // Update payment status after successful initiation
-        final bookingProvider = Provider.of<BookingProvider>(context, listen: false);
-        await bookingProvider.updatePaymentStatus(widget.booking.id, true);
+        if (!mounted) return;
+        Navigator.pop(context); // Close processing dialog
+
+        if (paymentResult['success']) {
+          _showSuccessDialog(paymentResult['mpesaCode']);
+        } else {
+          _showErrorDialog(paymentResult['error'] ?? 'Payment was not completed');
+        }
       } else {
         setState(() {
           _paymentError = result['error'] ?? 'Payment initiation failed';
         });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_paymentError!),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
-      setState(() {
-        _paymentError = 'Error: ${e.toString()}';
-      });
+      if (mounted) {
+        setState(() {
+          _paymentError = 'Error: ${e.toString()}';
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_paymentError!),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -106,6 +129,135 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
         });
       }
     }
+  }
+
+  void _showPaymentProcessingDialog(String checkoutRequestId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 20),
+            const Text(
+              'Processing Payment',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Please check your phone for the M-Pesa prompt and enter your PIN.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Waiting for confirmation...',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSuccessDialog(String mpesaCode) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green.shade600, size: 32),
+            const SizedBox(width: 12),
+            const Text('Payment Successful!'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Your payment has been confirmed.',
+              style: TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'M-Pesa Receipt:',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    mpesaCode,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Your booking is now confirmed. You can view your receipt in Payment History.',
+              style: TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close success dialog
+              Navigator.pop(context); // Close payment screen
+              Navigator.pop(context); // Back to booking list
+            },
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(String error) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 32),
+            const SizedBox(width: 12),
+            const Text('Payment Failed'),
+          ],
+        ),
+        content: Text(error),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Try Again'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -136,10 +288,7 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 20),
-                      _buildSummaryRow(
-                        'Room Type',
-                        widget.booking.roomType,
-                      ),
+                      _buildSummaryRow('Room Type', widget.booking.roomType),
                       const Divider(height: 20),
                       _buildSummaryRow(
                         'Duration',
@@ -192,7 +341,6 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                       hintText: 'Enter your M-Pesa phone number',
                       labelText: 'Phone Number',
                       prefixIcon: const Icon(Icons.phone),
-                      prefixText: '+254 ',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -236,7 +384,7 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                       '2. Click "Proceed to Payment"\n'
                       '3. You will receive an M-Pesa prompt on your phone\n'
                       '4. Enter your M-Pesa PIN to complete the payment\n'
-                      '5. Your booking will be confirmed immediately',
+                      '5. Wait for confirmation (this may take up to 2 minutes)',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.blue.shade800,
@@ -260,12 +408,13 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
                       : const Icon(Icons.payment),
                   label: Text(
                     _isProcessing ? 'Processing...' : 'Proceed to Payment',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
@@ -305,7 +454,8 @@ class _CheckoutPaymentScreenState extends State<CheckoutPaymentScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(value,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
       ],
     );
   }

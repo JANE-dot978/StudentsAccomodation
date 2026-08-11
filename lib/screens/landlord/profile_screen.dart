@@ -13,11 +13,31 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   bool _isEditing = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userData = await authProvider.getUserData();
+    if (userData != null && mounted) {
+      setState(() {
+        _nameController.text = userData['fullName'] ?? '';
+        _phoneController.text = userData['phoneNumber'] ?? '';
+      });
+    }
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -26,131 +46,347 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.user;
 
-    _nameController.text = user?.displayName ?? '';
-
     return Scaffold(
-      appBar: AppBar(title: const Text("Profile")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            const CircleAvatar(
-              radius: 40,
-              child: Icon(Icons.person, size: 40),
+      appBar: AppBar(
+        title: const Text("Profile"),
+        centerTitle: true,
+        actions: [
+          if (!_isEditing)
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                setState(() => _isEditing = true);
+              },
             ),
-            const SizedBox(height: 16),
-
-            // Email display
-            Text(
-              user?.email ?? "No email",
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 10),
-
-            // Editable full name
-            Form(
-              key: _formKey,
-              child: TextFormField(
-                controller: _nameController,
-                enabled: _isEditing,
-                decoration: InputDecoration(
-                  labelText: "Full Name",
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)),
-                  suffixIcon: _isEditing
-                      ? IconButton(
-                          icon: const Icon(Icons.check),
-                          onPressed: () async {
-                            if (_formKey.currentState!.validate()) {
-                              try {
-                                // ✅ Corrected method call
-                                await authProvider.updateProfile(
-                                    fullName: _nameController.text);
-                                setState(() => _isEditing = false);
+        ],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Profile Avatar
+                  Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        child: Icon(
+                          Icons.person,
+                          size: 50,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      if (_isEditing)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            child: IconButton(
+                              icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                              onPressed: () {
+                                // TODO: Implement image picker
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text("Name updated")),
+                                  const SnackBar(content: Text("Image upload coming soon!")),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // User Info Card
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.email, color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "Email",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Text(
+                                      user?.email ?? "No email",
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(height: 24),
+                          Row(
+                            children: [
+                              Icon(Icons.badge, color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "User ID",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    Text(
+                                      user?.uid.substring(0, 12) ?? "N/A",
+                                      style: const TextStyle(fontSize: 14, fontFamily: 'monospace'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Editable Fields Form
+                  Form(
+                    key: _formKey,
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Personal Information",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Full Name Field
+                            TextFormField(
+                              controller: _nameController,
+                              enabled: _isEditing,
+                              decoration: InputDecoration(
+                                labelText: "Full Name",
+                                prefixIcon: const Icon(Icons.person_outline),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return "Please enter your name";
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+
+                            // Phone Number Field
+                            TextFormField(
+                              controller: _phoneController,
+                              enabled: _isEditing,
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                labelText: "Phone Number",
+                                prefixIcon: const Icon(Icons.phone_outlined),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey.shade300),
+                                ),
+                                hintText: "e.g., +254700000000",
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+
+                            // Action Buttons
+                            if (_isEditing)
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: () {
+                                        _loadUserData();
+                                        setState(() => _isEditing = false);
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                      ),
+                                      child: const Text("Cancel"),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: _saveProfile,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Theme.of(context).colorScheme.primary,
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                      ),
+                                      child: const Text("Save Changes"),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Account Actions
+                  Card(
+                    child: Column(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.logout, color: Colors.orange),
+                          title: const Text("Logout"),
+                          subtitle: const Text("Sign out of your account"),
+                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          onTap: () async {
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Confirm Logout'),
+                                content: const Text('Are you sure you want to logout?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                    ),
+                                    child: const Text('Logout'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirmed == true && context.mounted) {
+                              await authProvider.logout();
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                              );
+                            }
+                          },
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.delete, color: Colors.red),
+                          title: const Text("Delete Account"),
+                          subtitle: const Text("Permanently delete your account"),
+                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          onTap: () async {
+                            bool confirm = await showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: const Text("Confirm Deletion"),
+                                content: const Text(
+                                    "Are you sure you want to delete your account? This action cannot be undone."),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text("Cancel"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                    child: const Text("Delete"),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm && context.mounted) {
+                              try {
+                                await authProvider.deleteAccount();
+                                Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
                                 );
                               } catch (e) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("Error: $e")),
+                                  SnackBar(content: Text("Error deleting account: $e")),
                                 );
                               }
                             }
                           },
-                        )
-                      : IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () {
-                            setState(() => _isEditing = true);
-                          },
                         ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return "Enter a name";
-                  }
-                  return null;
-                },
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
-
-            // Logout button
-            ElevatedButton.icon(
-              onPressed: () async {
-                await authProvider.logout();
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              },
-              icon: const Icon(Icons.logout),
-              label: const Text("Logout"),
-            ),
-            const SizedBox(height: 10),
-
-            // Delete account button
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () async {
-                bool confirm = await showDialog(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                    title: const Text("Confirm Deletion"),
-                    content: const Text(
-                        "Are you sure you want to delete your account? This action cannot be undone."),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Cancel"),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text("Delete"),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirm) {
-                  try {
-                    await authProvider.deleteAccount();
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                    );
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Error deleting account: $e")),
-                    );
-                  }
-                }
-              },
-              icon: const Icon(Icons.delete),
-              label: const Text("Delete Account"),
-            ),
-          ],
-        ),
-      ),
     );
+  }
+
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      // Update profile in Firebase Auth and Firestore
+      await authProvider.updateProfile(
+        fullName: _nameController.text,
+      );
+
+      // Update phone number in Firestore directly
+      await authProvider.updatePhoneNumber(_phoneController.text);
+
+      if (mounted) {
+        setState(() => _isEditing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Profile updated successfully!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class MyAppFunctions {
-  // Image picker dialog with callbacks
+  
   static Future<void> imagePickerDialog({
     required BuildContext context,
     required Future<void> Function() cameraFCT,

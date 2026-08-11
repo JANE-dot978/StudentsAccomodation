@@ -39,12 +39,13 @@ class _HostelListState extends State<HostelList> {
     return StreamBuilder<List<HostelModel>>(
       stream: hostelProvider.getHostelsByCategory(widget.category),
       builder: (context, snapshot) {
-        // ============ LOADING ============
+
+        // LOADING
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // ============ ERROR ============
+        // ERROR
         if (snapshot.hasError) {
           return Center(
             child: Column(
@@ -59,7 +60,7 @@ class _HostelListState extends State<HostelList> {
                 const SizedBox(height: 8),
                 Text(
                   'Error: ${snapshot.error}',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                  style: const TextStyle(color: Colors.grey, fontSize: 14),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -75,7 +76,7 @@ class _HostelListState extends State<HostelList> {
           );
         }
 
-        // ============ EMPTY ============
+        // EMPTY
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(
             child: Column(
@@ -106,20 +107,19 @@ class _HostelListState extends State<HostelList> {
 
         final List<HostelModel> hostels = snapshot.data!;
 
-        // Use a responsive grid for modern card layout
+        // ✅ Regular GridView - cards perfectly aligned 2x2
         return GridView.builder(
           padding: const EdgeInsets.all(12),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: MediaQuery.of(context).size.width > 800 ? 3 : 2,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 0.75,
+            childAspectRatio: 0.72, // ✅ Adjust this if needed
           ),
           itemCount: hostels.length,
           itemBuilder: (context, index) {
             final hostel = hostels[index];
             final isLiked = _likedHostels.contains(hostel.id);
-
             return _buildHostelCard(context, hostel, isLiked);
           },
         );
@@ -127,12 +127,13 @@ class _HostelListState extends State<HostelList> {
     );
   }
 
-  Widget _buildHostelCard(BuildContext context, HostelModel hostel, bool isLiked) {
+  Widget _buildHostelCard(
+      BuildContext context, HostelModel hostel, bool isLiked) {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
         onTap: () {
           Navigator.push(
             context,
@@ -144,38 +145,32 @@ class _HostelListState extends State<HostelList> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===== IMAGE WITH LIKE BUTTON =====
+
+            // ✅ IMAGE - Fixed height so all cards align
             Stack(
               children: [
-                // Image
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                  child: hostel.images.isNotEmpty
-                      ? Image.network(
-                          hostel.images[0],
-                          height: 160,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                            height: 160,
-                            color: Colors.grey.shade200,
-                            child: const Icon(Icons.broken_image,
-                                size: 40, color: Colors.grey),
-                          ),
-                        )
-                      : Container(
-                          height: 160,
+                hostel.images.isNotEmpty
+                    ? Image.network(
+                        hostel.images[0],
+                        height: 130, // ✅ Fixed height
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(
+                          height: 130,
                           color: Colors.grey.shade200,
                           alignment: Alignment.center,
-                          child: const Icon(Icons.home,
-                              size: 40, color: Colors.grey),
+                          child: const Icon(Icons.broken_image, size: 40),
                         ),
-                ),
-                // Like Button (top-right corner)
+                      )
+                    : Container(
+                        height: 130,
+                        color: Colors.grey.shade200,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.home, size: 40),
+                      ),
+
+                // LIKE BUTTON
                 Positioned(
                   top: 8,
                   right: 8,
@@ -185,16 +180,15 @@ class _HostelListState extends State<HostelList> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
+                          color: Colors.black.withOpacity(0.15),
                           blurRadius: 4,
-                          spreadRadius: 1,
                         ),
                       ],
                     ),
                     child: IconButton(
                       icon: Icon(
                         isLiked ? Icons.favorite : Icons.favorite_border,
-                        color: isLiked ? Colors.red : Colors.grey.shade600,
+                        color: isLiked ? Colors.red : Colors.grey,
                         size: 20,
                       ),
                       onPressed: () {
@@ -202,9 +196,12 @@ class _HostelListState extends State<HostelList> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              isLiked ? 'Removed from favorites' : 'Added to favorites',
+                              isLiked
+                                  ? 'Removed from favorites'
+                                  : 'Added to favorites',
                             ),
-                            duration: const Duration(milliseconds: 800),
+                            duration: const Duration(milliseconds: 700),
+                            behavior: SnackBarBehavior.floating,
                           ),
                         );
                       },
@@ -219,18 +216,20 @@ class _HostelListState extends State<HostelList> {
               ],
             ),
 
-            // ===== DETAILS SECTION WITH PREVIEW =====
+            // ✅ DETAILS - Fills remaining space evenly
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Title
+
+                    // Top content
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // NAME
                         Text(
                           hostel.name,
                           style: const TextStyle(
@@ -241,19 +240,21 @@ class _HostelListState extends State<HostelList> {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
+
                         const SizedBox(height: 4),
-                        // Location with icon
+
+                        // LOCATION
                         Row(
                           children: [
                             Icon(Icons.location_on,
-                                size: 12, color: Colors.grey.shade500),
-                            const SizedBox(width: 3),
+                                size: 13, color: Colors.grey.shade600),
+                            const SizedBox(width: 2),
                             Expanded(
                               child: Text(
                                 hostel.location,
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
-                                  fontSize: 11,
+                                  fontSize: 11.5,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -261,27 +262,29 @@ class _HostelListState extends State<HostelList> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
-                        // Quick preview of description
-                        if (hostel.description.isNotEmpty)
+
+                        // DESCRIPTION
+                        if (hostel.description.trim().isNotEmpty) ...[
+                          const SizedBox(height: 4),
                           Text(
                             hostel.description,
                             style: TextStyle(
-                              color: Colors.grey.shade600,
+                              color: Colors.grey.shade500,
                               fontSize: 11,
-                              height: 1.3,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
+                        ],
                       ],
                     ),
 
-                    // Price and Availability
+                    // ✅ Bottom: Price + Rooms always at bottom
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
+                        // PRICE
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -290,7 +293,7 @@ class _HostelListState extends State<HostelList> {
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                                fontSize: 15,
                               ),
                             ),
                             Text(
@@ -302,51 +305,37 @@ class _HostelListState extends State<HostelList> {
                             ),
                           ],
                         ),
-                        // Available badge
-                        if (hostel.availableRooms > 0)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Colors.green.shade200,
-                              ),
-                            ),
-                            child: Text(
-                              '${hostel.availableRooms} rooms',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.green.shade700,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          )
-                        else
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: Colors.red.shade200,
-                              ),
-                            ),
-                            child: Text(
-                              'Full',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.red.shade700,
-                                fontWeight: FontWeight.w600,
-                              ),
+
+                        // AVAILABILITY BADGE
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: hostel.availableRooms > 0
+                                ? Colors.green.shade50
+                                : Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: hostel.availableRooms > 0
+                                  ? Colors.green.shade200
+                                  : Colors.red.shade200,
                             ),
                           ),
+                          child: Text(
+                            hostel.availableRooms > 0
+                                ? '${hostel.availableRooms} rooms'
+                                : 'Full',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: hostel.availableRooms > 0
+                                  ? Colors.green.shade700
+                                  : Colors.red.shade700,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ],

@@ -17,34 +17,32 @@ class BookingProvider with ChangeNotifier {
   String? _error;
   String? get error => _error;
 
-  // ===================== STREAMS =====================
-
-  /// All bookings for landlord
+  
   Stream<List<Booking>> getLandlordBookings(String landlordId) {
     return _bookingService.getLandlordBookings(landlordId);
   }
 
-  /// All bookings for student
+
   Stream<List<Booking>> getStudentBookingsStream(String studentId) {
     return _bookingService.getStudentBookings(studentId);
   }
 
-  /// Pending bookings (landlord approval tab)
+  
   Stream<List<Booking>> getPendingBookings(String landlordId) {
     return _bookingService.getPendingBookings(landlordId);
   }
 
-  /// APPROVED BOOKINGS (THIS WAS MISSING — FIXES YOUR ERROR)
+  
   Stream<List<Booking>> getApprovedBookings(String userId, {bool isLandlord = false}) {
     return _bookingService.getApprovedBookings(userId, isLandlord: isLandlord);
   }
 
-  /// Active bookings (student living currently)
+
   Stream<List<Booking>> getActiveBookings(String studentId) {
     return _bookingService.getActiveBookings(studentId);
   }
 
-  // ===================== CREATE =====================
+  
 
   Future<bool> createBooking(Booking booking) async {
     _isLoading = true;
@@ -64,7 +62,7 @@ class BookingProvider with ChangeNotifier {
     }
   }
 
-  // ===================== FETCH LISTENERS =====================
+  
 
   void fetchStudentBookings(String studentId) {
     _bookingService.getStudentBookings(studentId).listen((bookings) {
@@ -80,7 +78,7 @@ class BookingProvider with ChangeNotifier {
     });
   }
 
-  // ===================== STATUS ACTIONS =====================
+  
 
   Future<bool> updateBookingStatus(String bookingId, String status) async {
     _isLoading = true;
@@ -112,7 +110,7 @@ class BookingProvider with ChangeNotifier {
     return await updateBookingStatus(bookingId, 'cancelled');
   }
 
-  // ===================== PAYMENT =====================
+  
 
   Future<bool> updatePaymentStatus(String bookingId, bool isPaid) async {
     _isLoading = true;
@@ -132,7 +130,7 @@ class BookingProvider with ChangeNotifier {
     }
   }
 
-  // ===================== UTILITIES =====================
+
 
   void clearError() {
     _error = null;

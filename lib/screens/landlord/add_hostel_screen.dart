@@ -34,8 +34,8 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   String _category = 'bedsitter';
 
   // Images
-  List<Uint8List> _pickedImages = [];
-  List<String> _pickedImageNames = [];
+  final List<Uint8List> _pickedImages = [];
+  final List<String> _pickedImageNames = [];
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -202,7 +202,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
 
               // CATEGORY DROPDOWN
               DropdownButtonFormField<String>(
-                value: _category,
+                initialValue: _category,
                 decoration: _inputDecoration('Room Category'),
                 items: const [
                   DropdownMenuItem(value: 'single room', child: Text('Single Room')),

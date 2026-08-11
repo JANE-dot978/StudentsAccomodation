@@ -16,7 +16,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'all';
   RangeValues _priceRange = const RangeValues(5000, 30000);
-  List<String> _selectedAmenities = [];
+  final List<String> _selectedAmenities = [];
   String _searchQuery = '';
 
   final List<String> _categories = ['all', 'single', 'bedsitter', 'shared'];

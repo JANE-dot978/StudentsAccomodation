@@ -87,10 +87,11 @@
 
 
 import 'package:flutter/material.dart';
+import 'reports_screen.dart';
 
 // This is your AdminDashboard widget that integrates with your existing app
 class AdminDashboard extends StatefulWidget {
-  const AdminDashboard({Key? key}) : super(key: key);
+  const AdminDashboard({super.key});
 
   @override
   State<AdminDashboard> createState() => _AdminDashboardState();
@@ -107,6 +108,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     ),
     const UserManagementScreen(),
     const VerifyLandlordsScreen(),
+    const ReportsScreen(),
   ];
 
   void _toggleTheme() {
@@ -159,6 +161,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 activeIcon: Icon(Icons.verified_user),
                 label: 'Verify',
               ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.assessment_outlined),
+                activeIcon: Icon(Icons.assessment),
+                label: 'Reports',
+              ),
             ],
           ),
         ),
@@ -200,10 +207,10 @@ class DashboardScreen extends StatefulWidget {
   final VoidCallback onToggleTheme;
   
   const DashboardScreen({
-    Key? key,
+    super.key,
     required this.isDarkMode,
     required this.onToggleTheme,
-  }) : super(key: key);
+  });
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -726,7 +733,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
 // User Management Screen
 class UserManagementScreen extends StatelessWidget {
-  const UserManagementScreen({Key? key}) : super(key: key);
+  const UserManagementScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -836,7 +843,7 @@ class UserManagementScreen extends StatelessWidget {
 
 // Verify Landlords Screen
 class VerifyLandlordsScreen extends StatefulWidget {
-  const VerifyLandlordsScreen({Key? key}) : super(key: key);
+  const VerifyLandlordsScreen({super.key});
 
   @override
   State<VerifyLandlordsScreen> createState() => _VerifyLandlordsScreenState();
