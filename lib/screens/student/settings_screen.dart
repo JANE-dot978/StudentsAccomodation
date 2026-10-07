@@ -2,7 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:studentsaccomodations/providers/theme_provider.dart';
-// import 'theme_provider.dart';
+import 'notification_settings_screen.dart';
+import 'privacy_security_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -30,14 +31,22 @@ class SettingsScreen extends StatelessWidget {
             title: const Text('Notifications'),
             subtitle: const Text('Manage notification preferences'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const NotificationSettingsScreen()),
+            ),
           ),
           ListTile(
             leading: const Icon(Icons.security_outlined),
             title: const Text('Privacy & Security'),
             subtitle: const Text('Manage your privacy settings'),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {},
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const PrivacySecurityScreen()),
+            ),
           ),
         ],
       ),

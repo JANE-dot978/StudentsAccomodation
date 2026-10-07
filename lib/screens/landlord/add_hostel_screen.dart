@@ -33,6 +33,10 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
   // Category: what gets stored in database (match student category keys)
   String _category = 'bedsitter';
 
+  // Shared facilities/amenities available at this hostel
+  static const _availableAmenities = ['library', 'computer lab', 'play area', 'tv lounge'];
+  final Set<String> _selectedAmenities = {};
+
   // Images
   final List<Uint8List> _pickedImages = [];
   final List<String> _pickedImageNames = [];
@@ -52,6 +56,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
       _roomsController.text = existingHostel!.availableRooms.toString();
       _descriptionController.text = existingHostel!.description;
       _category = existingHostel!.category;
+      _selectedAmenities.addAll(existingHostel!.sharedItems);
     }
   }
 
@@ -157,7 +162,7 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
         landlordId: authProvider.user!.uid,
         description: _descriptionController.text.trim(),
         category: _category, // Stores: 'single room', 'bedsitter', or 'shared room'
-        sharedItems: existingHostel?.sharedItems ?? [],
+        sharedItems: _selectedAmenities.toList(),
       );
 
       if (existingHostel == null) {
@@ -210,6 +215,35 @@ class _AddHostelScreenState extends State<AddHostelScreen> {
                   DropdownMenuItem(value: 'shared room', child: Text('Shared Room')),
                 ],
                 onChanged: (val) => setState(() => _category = val!),
+              ),
+
+              const SizedBox(height: 20),
+
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Shared Facilities',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _availableAmenities.map((amenity) {
+                  final selected = _selectedAmenities.contains(amenity);
+                  return FilterChip(
+                    label: Text(amenity),
+                    selected: selected,
+                    onSelected: (value) => setState(() {
+                      if (value) {
+                        _selectedAmenities.add(amenity);
+                      } else {
+                        _selectedAmenities.remove(amenity);
+                      }
+                    }),
+                  );
+                }).toList(),
               ),
 
               const SizedBox(height: 20),

@@ -18,6 +18,11 @@ class HostelProvider with ChangeNotifier {
     return _hostelService.getHostelsByCategory(category);
   }
 
+  // ⭐ AMENITY / SHARED FACILITY FILTER STREAM
+  Stream<List<HostelModel>> getHostelsByAmenity(String amenity) {
+    return _hostelService.getHostelsByAmenity(amenity);
+  }
+
   // ---------------- LANDLORD ----------------
   Stream<List<HostelModel>> getLandlordHostels(String landlordId) {
     return _hostelService.getHostelsByLandlord(landlordId);

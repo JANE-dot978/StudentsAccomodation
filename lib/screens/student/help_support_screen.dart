@@ -56,7 +56,8 @@ class HelpSupportScreen extends StatelessWidget {
               title: const Text('Visit Our Office'),
               subtitle: const Text('Nairobi, Kenya'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {},
+              onTap: () => _launchURL(
+                  'https://www.google.com/maps/search/?api=1&query=Nairobi,Kenya'),
             ),
           ),
 

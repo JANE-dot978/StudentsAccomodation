@@ -25,6 +25,17 @@ class HostelService {
             snapshot.docs.map((doc) => HostelModel.fromFirestore(doc)).toList());
   }
 
+  // ---------------- AMENITY / SHARED FACILITY ----------------
+  Stream<List<HostelModel>> getHostelsByAmenity(String amenity) {
+    return _firestore
+        .collection('hostels')
+        .where('sharedItems', arrayContains: amenity)
+        .where('availableRooms', isGreaterThan: 0)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => HostelModel.fromFirestore(doc)).toList());
+  }
+
   // ---------------- LANDLORD ----------------
   Stream<List<HostelModel>> getHostelsByLandlord(String landlordId) {
     return _firestore

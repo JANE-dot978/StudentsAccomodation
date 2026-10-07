@@ -39,6 +39,31 @@ class SharedItemProvider extends ChangeNotifier {
     }
   }
 
+  // Fetch ALL shared items for a hostel (landlord management view, includes unavailable items)
+  Future<void> fetchAllHostelItems(String hostelId) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final snapshot = await _firestore
+          .collection('sharedItems')
+          .where('hostelId', isEqualTo: hostelId)
+          .get();
+
+      _items = snapshot.docs
+          .map((doc) => SharedItem.fromDocument(doc.id, doc.data()))
+          .toList();
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Fetch items for a specific room
   Future<void> fetchRoomItems(String roomId) async {
     try {

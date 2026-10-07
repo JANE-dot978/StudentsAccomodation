@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:studentsaccomodations/providers/theme_provider.dart';
+import '../widgets/hostel_list.dart';
 
 
 class ComputerLabScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class ComputerLabScreen extends StatefulWidget {
 class _ComputerLabScreenState extends State<ComputerLabScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
+  final GlobalKey _hostelListKey = GlobalKey();
 
   @override
   void initState() {
@@ -23,6 +25,13 @@ class _ComputerLabScreenState extends State<ComputerLabScreen> with SingleTicker
     );
     _fadeAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
+  }
+
+  void _scrollToHostels() {
+    final context = _hostelListKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 400));
+    }
   }
 
   @override
@@ -520,9 +529,7 @@ class _ComputerLabScreenState extends State<ComputerLabScreen> with SingleTicker
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton.icon(
-                          onPressed: () {
-                            // Scroll to bottom or show hostels
-                          },
+                          onPressed: _scrollToHostels,
                           icon: const Icon(Icons.arrow_downward),
                           label: const Text('View Available Hostels'),
                           style: ElevatedButton.styleFrom(
@@ -541,63 +548,26 @@ class _ComputerLabScreenState extends State<ComputerLabScreen> with SingleTicker
 
                   const SizedBox(height: 32),
 
-                  // COMING SOON - HOSTELS LIST
+                  // AVAILABLE HOSTELS
                   Padding(
-                    padding: const EdgeInsets.all(20),
+                    key: _hostelListKey,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(40),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.blue.withOpacity(0.3),
-                              width: 2,
-                            ),
+                        Text(
+                          '🏠 Hostels With Computer Lab Facilities',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF2D3142),
                           ),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.construction,
-                                size: 64,
-                                color: Colors.blue.shade700,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Feature Coming Soon!',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade900,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'We\'re curating the best hostels with computer lab facilities. Check back soon or contact support for recommendations.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey.shade700,
-                                  height: 1.5,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 20),
-                              OutlinedButton.icon(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(Icons.arrow_back),
-                                label: const Text('Browse Other Categories'),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.blue.shade700,
-                                  side: BorderSide(color: Colors.blue.shade700),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        HostelList(
+                          category: 'computer lab',
+                          byAmenity: true,
+                          shrinkWrap: true,
                         ),
                       ],
                     ),

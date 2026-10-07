@@ -39,7 +39,33 @@ class MaintenanceProvider extends ChangeNotifier {
     }
   }
 
-  
+
+  Future<void> fetchLandlordMaintenance(String landlordId) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final snapshot = await _firestore
+          .collection('maintenance')
+          .where('landlordId', isEqualTo: landlordId)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      _maintenanceRequests = snapshot.docs
+          .map((doc) => Maintenance.fromDocument(doc.id, doc.data()))
+          .toList();
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+
   Future<void> fetchStudentReports(String studentId) async {
     try {
       _isLoading = true;

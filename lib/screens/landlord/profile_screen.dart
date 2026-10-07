@@ -1,7 +1,12 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:studentsaccomodations/screens/auth/login_screen.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/my_app_function.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -14,8 +19,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
   bool _isEditing = false;
   bool _isLoading = false;
+  bool _isUploadingImage = false;
+  String _profileImageUrl = '';
 
   @override
   void initState() {
@@ -30,7 +38,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         _nameController.text = userData['fullName'] ?? '';
         _phoneController.text = userData['phoneNumber'] ?? '';
+        _profileImageUrl = userData['profileImageUrl'] ?? '';
       });
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    await MyAppFunctions.imagePickerDialog(
+      context: context,
+      cameraFCT: () async {
+        final image = await _picker.pickImage(source: ImageSource.camera);
+        if (image != null) await _uploadImage(await image.readAsBytes(), image.name);
+      },
+      galleryFCT: () async {
+        final image = await _picker.pickImage(source: ImageSource.gallery);
+        if (image != null) await _uploadImage(await image.readAsBytes(), image.name);
+      },
+      removeFCT: () async {
+        setState(() => _profileImageUrl = '');
+        await Provider.of<AuthProvider>(context, listen: false)
+            .updateProfileImage('');
+      },
+    );
+  }
+
+  Future<void> _uploadImage(Uint8List imageBytes, String fileName) async {
+    setState(() => _isUploadingImage = true);
+
+    try {
+      const cloudName = 'dgppqmq3t';
+      const uploadPreset = 'studentaccomodations';
+      final url = Uri.parse(
+          'https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+      final request = http.MultipartRequest('POST', url)
+        ..fields['upload_preset'] = uploadPreset
+        ..files.add(
+          http.MultipartFile.fromBytes('file', imageBytes, filename: fileName),
+        );
+
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final respStr = await response.stream.bytesToString();
+        final imageUrl = jsonDecode(respStr)['secure_url'] as String;
+        if (!mounted) return;
+
+        await Provider.of<AuthProvider>(context, listen: false)
+            .updateProfileImage(imageUrl);
+
+        if (mounted) setState(() => _profileImageUrl = imageUrl);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to upload image')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isUploadingImage = false);
     }
   }
 
@@ -72,11 +141,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       CircleAvatar(
                         radius: 50,
                         backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                        child: Icon(
-                          Icons.person,
-                          size: 50,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                        backgroundImage: _profileImageUrl.isNotEmpty
+                            ? NetworkImage(_profileImageUrl)
+                            : null,
+                        child: _isUploadingImage
+                            ? const CircularProgressIndicator()
+                            : _profileImageUrl.isEmpty
+                                ? Icon(
+                                    Icons.person,
+                                    size: 50,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  )
+                                : null,
                       ),
                       if (_isEditing)
                         Positioned(
@@ -87,12 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             backgroundColor: Theme.of(context).colorScheme.primary,
                             child: IconButton(
                               icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
-                              onPressed: () {
-                                // TODO: Implement image picker
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Image upload coming soon!")),
-                                );
-                              },
+                              onPressed: _isUploadingImage ? null : _pickAndUploadImage,
                             ),
                           ),
                         ),

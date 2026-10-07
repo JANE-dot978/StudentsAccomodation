@@ -65,7 +65,7 @@ class SettingsScreen extends StatelessWidget {
               subtitle: const Text("Manage notification preferences"),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
-                _showNotificationsDialog(context);
+                _showNotificationsDialog(context, authProvider);
               },
             ),
           ),
@@ -204,46 +204,66 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showNotificationsDialog(BuildContext context) {
+  Future<void> _showNotificationsDialog(
+      BuildContext context, AuthProvider authProvider) async {
+    final userData = await authProvider.getUserData();
+    final saved = userData?['notificationPreferences'];
+    final preferences = <String, bool>{
+      'bookingUpdates': saved is Map ? (saved['bookingUpdates'] ?? true) : true,
+      'paymentAlerts': saved is Map ? (saved['paymentAlerts'] ?? true) : true,
+      'messages': saved is Map ? (saved['messages'] ?? true) : true,
+    };
+
+    if (!context.mounted) return;
+
+    Future<void> setPreference(
+        void Function(void Function()) setState, String key, bool value) async {
+      setState(() => preferences[key] = value);
+      try {
+        await authProvider.updateNotificationPreferences(preferences);
+      } catch (e) {
+        setState(() => preferences[key] = !value);
+      }
+    }
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Notifications"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SwitchListTile(
-              title: const Text("Booking Updates"),
-              subtitle: const Text("Get notified about new bookings"),
-              value: true,
-              onChanged: (value) {
-                // TODO: Implement notification settings
-              },
-            ),
-            SwitchListTile(
-              title: const Text("Payment Alerts"),
-              subtitle: const Text("Get notified about payments"),
-              value: true,
-              onChanged: (value) {
-                // TODO: Implement notification settings
-              },
-            ),
-            SwitchListTile(
-              title: const Text("Messages"),
-              subtitle: const Text("Get notified about messages"),
-              value: true,
-              onChanged: (value) {
-                // TODO: Implement notification settings
-              },
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text("Notifications"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SwitchListTile(
+                title: const Text("Booking Updates"),
+                subtitle: const Text("Get notified about new bookings"),
+                value: preferences['bookingUpdates']!,
+                onChanged: (value) =>
+                    setPreference(setState, 'bookingUpdates', value),
+              ),
+              SwitchListTile(
+                title: const Text("Payment Alerts"),
+                subtitle: const Text("Get notified about payments"),
+                value: preferences['paymentAlerts']!,
+                onChanged: (value) =>
+                    setPreference(setState, 'paymentAlerts', value),
+              ),
+              SwitchListTile(
+                title: const Text("Messages"),
+                subtitle: const Text("Get notified about messages"),
+                value: preferences['messages']!,
+                onChanged: (value) =>
+                    setPreference(setState, 'messages', value),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Close"),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
-          ),
-        ],
       ),
     );
   }

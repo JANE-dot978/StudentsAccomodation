@@ -1,4 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../providers/auth_provider.dart';
 
 class RateAppScreen extends StatefulWidget {
   const RateAppScreen({super.key});
@@ -18,7 +22,7 @@ class _RateAppScreenState extends State<RateAppScreen> {
     super.dispose();
   }
 
-  void _submitRating() {
+  Future<void> _submitRating() async {
     if (_rating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a rating')),
@@ -28,8 +32,17 @@ class _RateAppScreenState extends State<RateAppScreen> {
 
     setState(() => _submitted = true);
 
-    // Simulate submission
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    try {
+      final uid =
+          Provider.of<AuthProvider>(context, listen: false).user?.uid;
+      await FirebaseFirestore.instance.collection('appFeedback').add({
+        'type': 'rating',
+        'uid': uid,
+        'rating': _rating.toInt(),
+        'feedback': _feedbackController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -39,7 +52,81 @@ class _RateAppScreenState extends State<RateAppScreen> {
         );
         Navigator.pop(context);
       }
-    });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _submitted = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendFeedback(String type, String title) async {
+    final controller = TextEditingController();
+    final message = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: TextField(
+          controller: controller,
+          maxLines: 4,
+          autofocus: true,
+          decoration: InputDecoration(
+            hintText: type == 'bug'
+                ? 'Describe the issue you ran into...'
+                : 'Describe the feature you\'d like to see...',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+
+    if (message == null || message.isEmpty || !mounted) return;
+
+    try {
+      final uid =
+          Provider.of<AuthProvider>(context, listen: false).user?.uid;
+      await FirebaseFirestore.instance.collection('appFeedback').add({
+        'type': type,
+        'uid': uid,
+        'message': message,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Thanks! We received your message.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send: $e')),
+        );
+      }
+    }
+  }
+
+  void _shareApp() {
+    Share.share(
+      'Check out this app for finding student hostels and accommodation!',
+    );
   }
 
   @override
@@ -195,19 +282,19 @@ class _RateAppScreenState extends State<RateAppScreen> {
                   context,
                   Icons.bug_report_outlined,
                   'Report\nBug',
-                  () {},
+                  () => _sendFeedback('bug', 'Report a Bug'),
                 ),
                 _buildHelpButton(
                   context,
                   Icons.lightbulb_outlined,
                   'Suggest\nFeature',
-                  () {},
+                  () => _sendFeedback('feature', 'Suggest a Feature'),
                 ),
                 _buildHelpButton(
                   context,
                   Icons.share_outlined,
                   'Share\nApp',
-                  () {},
+                  _shareApp,
                 ),
               ],
             ),

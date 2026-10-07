@@ -8,6 +8,7 @@
 Thumbs.db
 *.swp
 *.lock
+!pubspec.lock
 *.log
 *.log.*
 logs/

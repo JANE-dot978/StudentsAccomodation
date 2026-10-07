@@ -48,30 +48,40 @@ service cloud.firestore {
 
     // ===== SHARED ITEMS COLLECTION =====
     match /sharedItems/{itemId} {
-      // Anyone can read shared items
+      // Anyone can read shared items (informational, shown to prospective students)
       allow read: if true;
-      // Authenticated users can create
-      allow create: if request.auth != null;
-      // Landlords can update their items
-      allow update, delete: if request.auth != null;
+      // Only the creating landlord can create/update/delete their own items
+      allow create: if request.auth != null && request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
     }
 
     // ===== MAINTENANCE REQUESTS COLLECTION =====
-    match /maintenanceRequests/{requestId} {
-      // Users can read their own requests
-      allow read: if request.auth != null;
-      // Authenticated users can create maintenance requests
-      allow create: if request.auth != null;
-      // Landlords can update (mark as resolved)
-      allow update: if request.auth != null;
-      // Landlords can delete their requests
-      allow delete: if request.auth != null;
+    match /maintenance/{requestId} {
+      // Only the reporting student or the hostel's landlord can read a request
+      allow read: if request.auth != null &&
+                     (request.auth.uid == resource.data.reportedBy ||
+                      request.auth.uid == resource.data.landlordId);
+      // Students can create requests reported under their own uid
+      allow create: if request.auth != null &&
+                       request.resource.data.reportedBy == request.auth.uid;
+      // The landlord can update status/assignment; the reporting student can also update their own request
+      allow update: if request.auth != null &&
+                       (request.auth.uid == resource.data.landlordId ||
+                        request.auth.uid == resource.data.reportedBy);
+      // Only the reporting student can delete (retract) their own request
+      allow delete: if request.auth != null && request.auth.uid == resource.data.reportedBy;
     }
 
     // ===== USER BOOKMARKS/FAVORITES =====
     match /userFavorites/{userId} {
       // Users can only access their own favorites
       allow read, write: if request.auth.uid == userId;
+    }
+
+    // ===== APP FEEDBACK (ratings, bug reports, feature requests) =====
+    match /appFeedback/{feedbackId} {
+      // Users can submit feedback tagged with their own uid; no client read/update/delete
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
     }
 
   }

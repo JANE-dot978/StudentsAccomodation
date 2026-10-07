@@ -217,4 +217,33 @@ class AuthProvider extends ChangeNotifier {
   Future<void> updatePhoneNumber(String phoneNumber) async {
     await updateUserPhone(phoneNumber);
   }
+
+  Future<void> updateProfileImage(String imageUrl) async {
+    if (_user == null) return;
+
+    try {
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'profileImageUrl': imageUrl,
+      });
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> updateNotificationPreferences(
+      Map<String, bool> preferences) async {
+    if (_user == null) return;
+
+    try {
+      await _firestore.collection('users').doc(_user!.uid).update({
+        'notificationPreferences': preferences,
+      });
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      rethrow;
+    }
+  }
 }

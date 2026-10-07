@@ -9,6 +9,9 @@ import 'settings_screen.dart';
 import 'help_support_screen.dart';
 import 'terms_conditions_screen.dart';
 import 'rate_app_screen.dart';
+import 'notification_settings_screen.dart';
+import 'privacy_policy_screen.dart';
+import 'maintanace_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -149,6 +152,16 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   _MenuItem(
+                    icon: Icons.build_outlined,
+                    title: 'Maintenance Requests',
+                    subtitle: 'Report and track issues with your room',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const MaintenanceScreen()),
+                    ),
+                  ),
+                  _MenuItem(
                     icon: Icons.favorite_outline,
                     title: 'Favorites',
                     subtitle: 'Your saved rooms',
@@ -177,7 +190,11 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.notifications_outlined,
                     title: 'Notifications',
                     subtitle: 'Manage notification settings',
-                    onTap: () => _showComingSoon(context, 'Notifications'),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const NotificationSettingsScreen()),
+                    ),
                   ),
                   _MenuItem(
                     icon: isDark ? Icons.light_mode : Icons.dark_mode,
@@ -226,7 +243,11 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.privacy_tip_outlined,
                     title: 'Privacy Policy',
                     subtitle: 'Read our privacy policy',
-                    onTap: () => _showComingSoon(context, 'Privacy Policy'),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const PrivacyPolicyScreen()),
+                    ),
                   ),
                   _MenuItem(
                     icon: Icons.description_outlined,

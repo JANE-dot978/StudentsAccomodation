@@ -5,8 +5,11 @@ import '../auth/login_screen.dart';
 import 'landlord_dashboard.dart';
 import 'property_screen.dart';
 import 'booking_approval_screen.dart';
+import 'students_screen.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
+import 'maintenance_screen.dart';
+import 'shared_items_screens.dart';
 
 class LandlordMainNavigation extends StatefulWidget {
   const LandlordMainNavigation({super.key});
@@ -22,6 +25,7 @@ class _LandlordMainNavigationState extends State<LandlordMainNavigation> {
     LandlordDashboard(),
     PropertyScreen(),
     BookingApprovalScreen(),
+    StudentsScreen(),
     ProfileScreen(),
   ];
 
@@ -58,6 +62,11 @@ class _LandlordMainNavigationState extends State<LandlordMainNavigation> {
             label: 'Bookings',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.people_outline),
+            activeIcon: Icon(Icons.people),
+            label: 'Tenants',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
             label: 'Profile',
@@ -85,6 +94,28 @@ class _LandlordMainNavigationState extends State<LandlordMainNavigation> {
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.build_outlined),
+            title: const Text('Maintenance Requests'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MaintenanceScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.inventory_2_outlined),
+            title: const Text('Shared Items'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SharedItemsScreen()),
+              );
+            },
           ),
           ListTile(
             leading: const Icon(Icons.settings),

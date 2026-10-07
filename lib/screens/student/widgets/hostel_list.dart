@@ -2,42 +2,54 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/hostel_model.dart';
 import '../../../providers/hostel_provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/favorites_provider.dart';
 import '../room_detail_screen.dart';
 
 class HostelList extends StatefulWidget {
   final String category;
+  final bool byAmenity;
+  final bool shrinkWrap;
 
-  const HostelList({super.key, required this.category});
+  const HostelList({
+    super.key,
+    required this.category,
+    this.byAmenity = false,
+    this.shrinkWrap = false,
+  });
 
   @override
   State<HostelList> createState() => _HostelListState();
 }
 
 class _HostelListState extends State<HostelList> {
-  late Set<String> _likedHostels;
-
   @override
   void initState() {
     super.initState();
-    _likedHostels = {};
+    final uid = Provider.of<AuthProvider>(context, listen: false).user?.uid;
+    if (uid != null) {
+      final favoritesProvider =
+          Provider.of<FavoritesProvider>(context, listen: false);
+      Future.microtask(() => favoritesProvider.loadFavorites(uid));
+    }
   }
 
   void _toggleLike(String hostelId) {
-    setState(() {
-      if (_likedHostels.contains(hostelId)) {
-        _likedHostels.remove(hostelId);
-      } else {
-        _likedHostels.add(hostelId);
-      }
-    });
+    final uid = Provider.of<AuthProvider>(context, listen: false).user?.uid;
+    if (uid == null) return;
+    Provider.of<FavoritesProvider>(context, listen: false)
+        .toggleFavorite(uid, hostelId);
   }
 
   @override
   Widget build(BuildContext context) {
     final hostelProvider = Provider.of<HostelProvider>(context, listen: false);
+    final favoritesProvider = Provider.of<FavoritesProvider>(context);
 
     return StreamBuilder<List<HostelModel>>(
-      stream: hostelProvider.getHostelsByCategory(widget.category),
+      stream: widget.byAmenity
+          ? hostelProvider.getHostelsByAmenity(widget.category)
+          : hostelProvider.getHostelsByCategory(widget.category),
       builder: (context, snapshot) {
 
         // LOADING
@@ -110,6 +122,8 @@ class _HostelListState extends State<HostelList> {
         // ✅ Regular GridView - cards perfectly aligned 2x2
         return GridView.builder(
           padding: const EdgeInsets.all(12),
+          shrinkWrap: widget.shrinkWrap,
+          physics: widget.shrinkWrap ? const NeverScrollableScrollPhysics() : null,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 12,
@@ -119,7 +133,7 @@ class _HostelListState extends State<HostelList> {
           itemCount: hostels.length,
           itemBuilder: (context, index) {
             final hostel = hostels[index];
-            final isLiked = _likedHostels.contains(hostel.id);
+            final isLiked = favoritesProvider.isFavorite(hostel.id);
             return _buildHostelCard(context, hostel, isLiked);
           },
         );

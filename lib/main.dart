@@ -12,6 +12,7 @@ import 'providers/maintanance_provider.dart';
 import 'providers/shared_item_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/landlord_provider.dart';
+import 'providers/favorites_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -32,6 +33,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => MaintenanceProvider()),
         ChangeNotifierProvider(create: (_) => SharedItemProvider()),
         ChangeNotifierProvider(create: (_) => LandlordProvider()),
+        ChangeNotifierProvider(create: (_) => FavoritesProvider()),
       ],
       child: const MyApp(),
     ),

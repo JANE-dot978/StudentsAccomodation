@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:studentsaccomodations/core/routes/app_routes.dart';
 import '../../models/hostel_model.dart';
+import 'shared_items_screen.dart';
 // import '../../app_routes.dart';
 
 class HostelDetailsScreen extends StatelessWidget {
@@ -99,6 +100,28 @@ class HostelDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(hostel.description),
+
+                  const SizedBox(height: 12),
+
+                  /// SHARED ITEMS
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.inventory_2_outlined),
+                      label: const Text("View Shared Items"),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => SharedItemsScreen(
+                              hostelId: hostel.id,
+                              hostelName: hostel.name,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
 
                   const SizedBox(height: 30),
 
